@@ -1,0 +1,135 @@
+/* ===== Global design tokens ===== */
+:root {
+  --bg-base:    #1b1d23;
+  --bg-raised:  #22252e;
+  --bg-elevated:#2a2d36;
+  --bg-input:   #32363f;
+  --border:     #3a3d4a;
+  --border-focus: #2563eb;
+
+  --text-primary:  #f1f3f7;
+  --text-secondary:#b8bcc8;
+  --text-muted:    #7a7f8e;
+  --text-placeholder: #5a5f6e;
+
+  --accent:     #2563eb;
+  --accent-hov: #1d4ed8;
+  --green:      #4ade80;
+  --yellow:     #fbbf24;
+  --red:        #f87171;
+  --orange:     #fb923c;
+
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ===== Inputs & selects ===== */
+input, select, textarea {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input::placeholder, textarea::placeholder { color: var(--text-placeholder); }
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px #2563eb28;
+}
+
+/* Custom dropdown arrow — replaces the OS-native one removed by appearance:none */
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%237a7f8e' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  padding-right: 2rem;
+}
+
+/* option elements inside a select */
+select option {
+  background: var(--bg-elevated, #2a2d36);
+  color: var(--text-primary);
+}
+
+/* Prevent dark text in autofill (Chrome) */
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  box-shadow: 0 0 0 1000px var(--bg-input) inset;
+}
+
+/* ===== Tables ===== */
+table { border-collapse: collapse; width: 100%; }
+
+th {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem 0.4rem;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+th:first-child { text-align: left; }
+
+td {
+  border-top: 1px solid var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: 0.4rem 0.6rem;
+  text-align: right;
+}
+
+td:first-child { text-align: left; }
+tr:hover td { background: #ffffff06; }
+
+/* ===== Buttons ===== */
+button {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 0.4rem 0.9rem;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+button:hover:not(:disabled) { background: #363a48; border-color: #4a4f60; }
+button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent-hov);
+  color: #fff;
+  font-weight: 600;
+}
+button.primary:hover:not(:disabled) { background: var(--accent-hov); }
+
+button.danger  { color: var(--red); }
+button.accent  { background: var(--accent); border-color: var(--accent-hov); color: #fff; }

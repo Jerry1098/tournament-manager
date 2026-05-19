@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "projector",
+  "description": "Projector window: events + fullscreen toggle",
+  "windows": ["projector"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:window:default",
+    "core:window:allow-set-fullscreen",
+    "core:window:allow-close"
+  ]
+}
