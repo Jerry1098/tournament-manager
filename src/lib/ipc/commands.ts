@@ -47,8 +47,8 @@ export const reassignTable = (matchId: string, tableId: string | null) =>
 export const startMatch = (matchId: string) =>
   invoke<void>('start_match', { matchId });
 
-export const startAllAssignedMatches = () =>
-  invoke<number>('start_all_assigned_matches');
+export const startAllAssignedMatches = (roundIndex: number) =>
+  invoke<number>('start_all_assigned_matches', { roundIndex });
 
 export const submitResult = (matchId: string, cupsA: number, cupsB: number) =>
   invoke<void>('submit_result', { matchId, cupsA, cupsB });

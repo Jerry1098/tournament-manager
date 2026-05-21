@@ -21,7 +21,7 @@
 
   async function handleStartAll() {
     startingAll = true;
-    await startAllAssignedMatches().catch((e) => alert(e));
+    await startAllAssignedMatches(roundIndex).catch((e) => alert(e));
     startingAll = false;
   }
 </script>

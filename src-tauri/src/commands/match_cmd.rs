@@ -68,9 +68,10 @@ pub async fn start_match(
     Ok(())
 }
 
-/// Start every Scheduled match in the current round that has a table assigned.
+/// Start every Scheduled match in the given round that has a table assigned.
 #[tauri::command]
 pub async fn start_all_assigned_matches(
+    round_index: usize,
     state: State<'_, SharedState>,
     app: AppHandle,
 ) -> Result<usize, AppError> {
@@ -78,23 +79,15 @@ pub async fn start_all_assigned_matches(
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
     let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
 
-    let table_count = t.config.tables.len();
-    let round_idx = if t.rounds.is_empty() {
+    let round_idx = round_index;
+    if round_idx >= t.rounds.len() {
         return Ok(0);
-    } else {
-        t.rounds.len() - 1
-    };
+    }
 
-    // Collect IDs of matches to start (avoid double-borrow)
-    let in_progress = t.rounds[round_idx].matches.iter()
-        .filter(|m| m.status == MatchStatus::InProgress)
-        .count();
-    let available = table_count.saturating_sub(in_progress);
-
+    // Collect IDs of all scheduled matches that have a table assigned.
     let to_start: Vec<String> = t.rounds[round_idx].matches.iter()
         .filter(|m| m.status == MatchStatus::Scheduled && m.table_id.is_some())
         .map(|m| m.id.clone())
-        .take(available)
         .collect();
 
     // Enforce ordering: the previous round must be complete.
