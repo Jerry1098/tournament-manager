@@ -102,3 +102,11 @@ export interface TeamBalance {
   teamName: string;
   counts: Record<string, number>;
 }
+
+export interface TournamentSummary {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  path: string;
+}

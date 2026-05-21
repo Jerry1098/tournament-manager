@@ -2,6 +2,7 @@
   import { generateNextRound, startPlayoffs } from '$lib/ipc/commands';
   import TournamentBar from '$lib/components/control/TournamentBar.svelte';
   import ConfigPanel from '$lib/components/control/ConfigPanel.svelte';
+  import TournamentPicker from '$lib/components/control/TournamentPicker.svelte';
   import TeamList from '$lib/components/control/TeamList.svelte';
   import RoundView from '$lib/components/control/RoundView.svelte';
   import StandingsTable from '$lib/components/control/StandingsTable.svelte';
@@ -65,11 +66,7 @@
       <ConfigPanel onCreated={() => { showNewTournament = false; }} />
 
     {:else if !t}
-      <div class="splash">
-        <h2>No tournament open</h2>
-        <p>Create a new tournament or open an existing JSON file.</p>
-        <button onclick={() => { showNewTournament = true; }}>New Tournament</button>
-      </div>
+      <TournamentPicker onNewTournament={() => { showNewTournament = true; }} />
 
     {:else if phase === 'setup'}
       <div class="setup-layout">
@@ -190,32 +187,6 @@
     padding: 1.25rem 1.5rem;
     overflow-y: auto;
     min-height: 0;
-  }
-
-  /* Splash */
-  .splash {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    text-align: center;
-    padding-top: 8vh;
-  }
-
-  .splash h2 { margin: 0; font-size: 1.5rem; }
-  .splash p  { margin: 0; opacity: 0.6; }
-
-  .splash button {
-    margin-top: 0.5rem;
-    background: #2563eb;
-    border: none;
-    border-radius: 8px;
-    color: #fff;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    padding: 0.6rem 1.4rem;
   }
 
   /* Setup */

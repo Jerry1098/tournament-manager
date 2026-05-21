@@ -1,11 +1,12 @@
 use std::path::PathBuf;
+use std::collections::HashSet;
 use chrono::Utc;
 use tauri::{AppHandle, State};
 use crate::domain::model::{Phase, Tournament, TournamentConfig};
 use crate::error::AppError;
 use crate::events;
 use crate::state::SharedState;
-use crate::storage;
+use crate::storage::{self, TournamentSummary};
 
 fn new_id() -> String {
     ulid::Ulid::new().to_string()
@@ -60,6 +61,25 @@ pub async fn create_tournament(
     for tbl in &mut config.tables {
         tbl.id = new_id();
     }
+
+    // Deduplicate name: if a tournament with this name already exists, append a number.
+    let existing_names: HashSet<String> = storage::list_all(&app)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|s| s.name)
+        .collect();
+    let name = if existing_names.contains(&name) {
+        let mut n = 2u32;
+        loop {
+            let candidate = format!("{name} {n}");
+            if !existing_names.contains(&candidate) {
+                break candidate;
+            }
+            n += 1;
+        }
+    } else {
+        name
+    };
 
     let t = Tournament {
         schema_version: 1,
@@ -159,4 +179,27 @@ pub async fn rename_tournament(
     mutate_and_persist(&state, &app, |t| {
         t.name = name;
     })
+}
+
+#[tauri::command]
+pub async fn list_tournaments(app: AppHandle) -> Result<Vec<TournamentSummary>, AppError> {
+    storage::list_all(&app)
+}
+
+#[tauri::command]
+pub async fn delete_tournament(
+    path: PathBuf,
+    state: State<'_, SharedState>,
+) -> Result<(), AppError> {
+    let guard = state.lock().unwrap();
+    if let Some(current_path) = &guard.current_path {
+        if *current_path == path {
+            return Err(AppError::InvalidArgument(
+                "Cannot delete the currently open tournament".into(),
+            ));
+        }
+    }
+    drop(guard);
+    std::fs::remove_file(&path)?;
+    Ok(())
 }

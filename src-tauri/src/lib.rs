@@ -21,6 +21,8 @@ pub fn run() {
             commands::tournament::close_tournament,
             commands::tournament::get_tournament,
             commands::tournament::rename_tournament,
+            commands::tournament::list_tournaments,
+            commands::tournament::delete_tournament,
             commands::team::add_team,
             commands::team::rename_team,
             commands::team::remove_team,
