@@ -35,7 +35,7 @@
 
 <div class="projector">
   <!-- Scaled content -->
-  <div class="content-wrap" style="transform: scale({scale}); transform-origin: top left; width: {scaleW}; min-height: {scaleH};">
+  <div class="content-wrap" style="transform: scale({scale}); transform-origin: top left; width: {scaleW}; height: {scaleH};">
     {#if !t || phase === 'setup'}
       <div class="idle">
         <div class="logo">🏆</div>
@@ -69,7 +69,7 @@
 <style>
   .projector {
     position: relative;
-    min-height: 100vh;
+    height: 100vh;
     overflow: hidden;
   }
 
@@ -82,7 +82,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     gap: 1rem;
     text-align: center;
   }

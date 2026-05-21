@@ -160,7 +160,7 @@
   .view {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     padding: 1.5rem 2rem;
     gap: 1rem;
     overflow: hidden;
