@@ -199,4 +199,15 @@
 
   .vs { opacity: 0.4; }
   .result { color: #4ade80; font-weight: 700; margin-left: 0.5rem; }
+
+  /* Light mode */
+  :global(body.light) h1 { color: #111827; }
+  :global(body.light) .round-label { border-bottom-color: #d1d5db; }
+  :global(body.light) .match { background: #ffffff; border-color: #d1d5db; }
+  :global(body.light) .match.completed { border-color: #16a34a; }
+  :global(body.light) .team { border-bottom-color: #e5e7eb; }
+  :global(body.light) .name { color: #111827; }
+  :global(body.light) .team.winner .name { color: #16a34a; }
+  :global(body.light) .third { border-top-color: #d1d5db; }
+  :global(body.light) .result { color: #16a34a; }
 </style>

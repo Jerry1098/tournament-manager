@@ -212,4 +212,13 @@
   }
 
   .blink { animation: blink 1s step-end infinite; }
+
+  /* Light mode */
+  :global(body.light) .card { background: #ffffff; }
+  :global(body.light) .card.completed { background: #f0fdf4; border-color: #16a34a; }
+  :global(body.light) .card.paused { background: #fffbeb; border-color: #d97706; }
+  :global(body.light) .team { color: #111827; }
+  :global(body.light) .score { color: #111827; }
+  :global(body.light) .table-label { color: #6b7280; }
+  :global(body.light) .dash { color: #9ca3af; }
 </style>

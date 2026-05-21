@@ -368,4 +368,20 @@
     justify-content: center;
     padding: 1rem 0;
   }
+
+  /* Light mode */
+  :global(body.light) h2 { color: #6b7280; }
+  :global(body.light) h3 { color: #9ca3af; }
+  :global(body.light) .round-label strong { color: #111827; }
+  :global(body.light) .all-done { color: #16a34a; }
+  :global(body.light) .idle { color: #9ca3af; }
+  :global(body.light) .table-tag { background: #e8eaed; border-color: #d1d5db; color: #6b7280; }
+  :global(body.light) .pair { color: #111827; }
+  :global(body.light) .pair.muted { color: #374151; }
+  :global(body.light) .vs { color: #9ca3af; }
+  :global(body.light) .result-card { background: #ffffff; border-color: #d1d5db; }
+  :global(body.light) .tbl-label { color: #9ca3af; }
+  :global(body.light) .rteam { color: #374151; }
+  :global(body.light) .rteam.winner { color: #16a34a; }
+  :global(body.light) .rscore .dash { color: #9ca3af; }
 </style>

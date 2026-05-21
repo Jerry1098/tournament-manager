@@ -83,4 +83,9 @@
 
   tr.top td { background: #ffffff08; }
   tr.top td.name { color: #fbbf24; }
+
+  /* Light mode */
+  :global(body.light) td { border-top-color: #e5e7eb; }
+  :global(body.light) tr.top td { background: rgba(0,0,0,0.04); }
+  :global(body.light) tr.top td.name { color: #d97706; }
 </style>

@@ -361,4 +361,47 @@
   }
 
   button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Light mode overrides */
+  :global(body.light) .setup-hint { background: #e8eaed; }
+
+  :global(body.light) .schedule-calc {
+    background: #f0f2f5;
+    border-color: #d1d5db;
+    color: #6b7280;
+  }
+
+  :global(body.light) .calc-row .val,
+  :global(body.light) .calc-result { color: #111827; }
+  :global(body.light) .calc-result strong { color: #2563eb; }
+
+  :global(body.light) .setup-hint li {
+    color: #6b7280;
+    border-bottom-color: #d1d5db;
+  }
+
+  :global(body.light) .setup-hint li span:last-child { color: #374151; }
+  :global(body.light) .setup-hint li span:last-child.ok { color: #16a34a; }
+
+  :global(body.light) .tab {
+    background: #e8eaed;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+
+  :global(body.light) .tab.active {
+    background: #dbeafe;
+    border-color: #2563eb;
+    color: #1e3a8a;
+  }
+
+  :global(body.light) .tab .check { color: #16a34a; }
+
+  :global(body.light) .playoffs-cta {
+    background: #f0fdf4;
+    border-color: #16a34a;
+  }
+
+  :global(body.light) .playoffs-cta h3 { color: #16a34a; }
+  :global(body.light) .playoffs-cta p { color: #374151; }
 </style>

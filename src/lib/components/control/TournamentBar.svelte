@@ -1,5 +1,6 @@
 <script lang="ts">
   import { open, save } from '@tauri-apps/plugin-dialog';
+  import { emit } from '@tauri-apps/api/event';
   import {
     closeTournament,
     loadTournament,
@@ -8,6 +9,7 @@
     saveTournamentAs,
   } from '$lib/ipc/commands';
   import { dirtyStore, tournamentStore } from '$lib/stores/tournament.svelte';
+  import { themeStore } from '$lib/stores/theme.svelte';
 
   let { onNewTournament }: { onNewTournament: () => void } = $props();
 
@@ -45,6 +47,13 @@
       await renameTournament(nameInput).catch(console.error);
     }
   }
+
+  function toggleTheme() {
+    const next: 'dark' | 'light' = themeStore.value === 'dark' ? 'light' : 'dark';
+    themeStore.value = next;
+    localStorage.setItem('theme', next);
+    emit('theme-changed', next).catch(() => {});
+  }
 </script>
 
 <header class="bar">
@@ -70,6 +79,9 @@
   </div>
 
   <nav class="actions">
+    <button class="theme-btn" onclick={toggleTheme} title={themeStore.value === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+      {themeStore.value === 'dark' ? '☀' : '🌙'}
+    </button>
     <button onclick={onNewTournament}>New</button>
     <button onclick={handleLoad}>Open…</button>
     {#if tournamentStore.value}
@@ -132,6 +144,7 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   button {
@@ -150,4 +163,55 @@
   button.accent { background: #2563eb; border-color: #1d4ed8; }
   button.accent:hover { background: #1d4ed8; }
   button.danger { color: #f87171; }
+
+  .theme-btn {
+    font-size: 1rem;
+    padding: 0.3rem 0.6rem;
+    line-height: 1;
+  }
+
+  /* Light mode overrides */
+  :global(body.light) .bar {
+    background: #ffffff;
+    border-bottom-color: #d1d5db;
+  }
+
+  :global(body.light) .actions button {
+    background: #e8eaed;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+
+  :global(body.light) .actions button:hover {
+    background: #d1d5db;
+  }
+
+  :global(body.light) .actions button.ghost {
+    background: transparent;
+    border-color: transparent;
+  }
+
+  :global(body.light) .actions button.accent {
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #fff;
+  }
+
+  :global(body.light) .actions button.accent:hover {
+    background: #1d4ed8;
+  }
+
+  :global(body.light) .actions button.danger {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+
+  :global(body.light) .name:hover { background: #e8eaed; }
+
+  :global(body.light) .name-input {
+    background: #f0f2f5;
+    border-color: #d1d5db;
+    color: #111827;
+  }
 </style>
