@@ -17,6 +17,11 @@ export interface TournamentConfig {
   randomSeed: number;
   /** Default match duration in minutes. 0 = no timer. */
   defaultMatchMinutes: number;
+  /**
+   * How many extra swiss-rounds the scheduler may add to achieve exact
+   * per-category balance. Defaults to 3 when omitted.
+   */
+  maxRoundExtension?: number;
 }
 
 export interface Team {

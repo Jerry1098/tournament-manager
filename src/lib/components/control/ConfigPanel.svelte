@@ -7,6 +7,7 @@
   let name = $state('');
   // "Matches per team" = number of Swiss pairing rounds (in Swiss, each round = 1 match per team)
   let matchesPerTeam = $state(3);
+  let maxRoundExtension = $state(3);
   let expectedTeams = $state(16);
   let playoffTeamCount = $state(4);
   let defaultMatchMinutes = $state(15);
@@ -47,7 +48,8 @@
     const config: TournamentConfig = {
       format: 'swiss',
       tables: tableConfigs,
-      swissRounds: matchesPerTeam, // Swiss rounds = matches per team
+      swissRounds: matchesPerTeam,
+      maxRoundExtension,
       playoffTeamCount,
       allowByes: true,
       randomSeed: Math.floor(Math.random() * 2 ** 32),
@@ -82,6 +84,12 @@
         Matches per team
         <input type="number" bind:value={matchesPerTeam} min="1" max="20" />
         <span class="hint">Each team plays this many group games</span>
+      </label>
+
+      <label class="field">
+        Max extra rounds
+        <input type="number" bind:value={maxRoundExtension} min="0" max="10" />
+        <span class="hint">Extra rounds allowed to achieve equal games per category (0 = never extend)</span>
       </label>
     </div>
 

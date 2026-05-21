@@ -30,7 +30,13 @@ pub struct TournamentConfig {
     /// Default match duration in minutes. 0 = no timer.
     #[serde(default)]
     pub default_match_minutes: u32,
+    /// How many extra swiss-rounds the scheduler may add to achieve exact
+    /// per-category balance. 0 = never extend. Default 3.
+    #[serde(default = "default_max_round_extension")]
+    pub max_round_extension: u32,
 }
+
+fn default_max_round_extension() -> u32 { 3 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

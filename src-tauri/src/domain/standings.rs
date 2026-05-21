@@ -138,6 +138,7 @@ mod tests {
                 allow_byes: true,
                 random_seed: 0,
                 default_match_minutes: 0,
+                max_round_extension: 3,
             },
             teams: teams
                 .iter()
