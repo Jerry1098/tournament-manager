@@ -114,8 +114,8 @@
   }
 
   .dialog {
-    background: #1e2028;
-    border: 1px solid #3a3d4a;
+    background: var(--bg-raised, #1e2028);
+    border: 1px solid var(--border, #3a3d4a);
     border-radius: 12px;
     padding: 1.75rem 2rem;
     width: 26rem;
@@ -207,10 +207,10 @@
   }
 
   button {
-    background: #2a2d36;
-    border: 1px solid #3a3d4a;
+    background: var(--bg-elevated, #2a2d36);
+    border: 1px solid var(--border, #3a3d4a);
     border-radius: 6px;
-    color: #e9ecef;
+    color: var(--text-primary, #e9ecef);
     cursor: pointer;
     font-size: 0.875rem;
     padding: 0.45rem 1.1rem;
@@ -219,4 +219,8 @@
   button:disabled { opacity: 0.4; cursor: not-allowed; }
   button.primary { background: #2563eb; border-color: #1d4ed8; font-weight: 600; }
   button.primary:not(:disabled):hover { background: #1d4ed8; }
+
+  /* Light mode */
+  :global(body.light) .cups.is-winner { border-color: #16a34a; color: #16a34a; }
+  :global(body.light) .winner { color: #16a34a; }
 </style>

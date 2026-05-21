@@ -414,4 +414,38 @@
   button.small:disabled { opacity: 0.35; cursor: not-allowed; }
   button.small.primary { background: #2563eb; border-color: #1d4ed8; }
   button.small.primary:hover:not(:disabled) { background: #1d4ed8; }
+
+  /* Light mode */
+  :global(body.light) .card { background: #ffffff; border-color: #d1d5db; }
+  :global(body.light) .card.in-progress { background: #eff6ff; border-color: #2563eb; }
+  :global(body.light) .card.completed   { background: #f0fdf4; border-color: #16a34a; }
+
+  :global(body.light) .status.scheduled  { background: #f3f4f6; color: #6b7280; }
+  :global(body.light) .status.inProgress { background: #dbeafe; color: #1d4ed8; }
+  :global(body.light) .status.completed  { background: #dcfce7; color: #166534; }
+  :global(body.light) .status.bye        { background: #f3f4f6; color: #9ca3af; }
+
+  :global(body.light) .table-badge { background: #e8eaed; color: #6b7280; }
+  :global(body.light) .team  { color: #111827; }
+  :global(body.light) .cups  { color: #111827; }
+
+  :global(body.light) .icon-btn {
+    background: #e8eaed;
+    border-color: #d1d5db;
+    color: #374151;
+  }
+  :global(body.light) .icon-btn:hover { background: #d1d5db; }
+  :global(body.light) .time-input {
+    background: var(--bg-input);
+    border-color: var(--border-focus);
+    color: var(--text-primary);
+  }
+  :global(body.light) button.small {
+    background: #e8eaed;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+  :global(body.light) button.small:hover:not(:disabled) { background: #d1d5db; }
+  :global(body.light) button.small.primary { background: #2563eb; border-color: #1d4ed8; color: #fff; }
+  :global(body.light) button.small.primary:hover:not(:disabled) { background: #1d4ed8; }
 </style>

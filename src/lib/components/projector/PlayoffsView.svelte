@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tournamentStore } from '$lib/stores/tournament.svelte';
+  import Scoreboard from './Scoreboard.svelte';
   import type { Match } from '$lib/ipc/types';
 
   const t = $derived(tournamentStore.value!);
@@ -33,59 +34,78 @@
 </script>
 
 <div class="view">
-  <h1>Playoffs</h1>
 
-  <div class="bracket">
-    {#each rounds() as roundMatches, col}
-      <div class="round-col">
-        <div class="round-label">{roundLabel(col)}</div>
-        <div class="match-col">
-          {#each roundMatches as match (match?.id)}
-            <div
-              class="match"
-              class:completed={match?.status === 'completed'}
-              class:pending={!match?.teamA || !match?.teamB}
-            >
-              {#if match}
-                <div class="team" class:winner={match.status === 'completed' && match.cupsA > match.cupsB}>
-                  <span class="name">{teamName(match.teamA)}</span>
-                  {#if match.status === 'completed'}<span class="cups">{match.cupsA}</span>{/if}
-                </div>
-                <div class="team" class:winner={match.status === 'completed' && match.cupsB > match.cupsA}>
-                  <span class="name">{teamName(match.teamB)}</span>
-                  {#if match.status === 'completed'}<span class="cups">{match.cupsB}</span>{/if}
-                </div>
-              {:else}
-                <div class="tbd">TBD</div>
-              {/if}
-            </div>
-          {/each}
+  <!-- Bracket area -->
+  <div class="main-panel">
+    <h1>Playoffs</h1>
+
+    <div class="bracket">
+      {#each rounds() as roundMatches, col}
+        <div class="round-col">
+          <div class="round-label">{roundLabel(col)}</div>
+          <div class="match-col">
+            {#each roundMatches as match (match?.id)}
+              <div
+                class="match"
+                class:completed={match?.status === 'completed'}
+                class:pending={!match?.teamA || !match?.teamB}
+              >
+                {#if match}
+                  <div class="team" class:winner={match.status === 'completed' && match.cupsA > match.cupsB}>
+                    <span class="name">{teamName(match.teamA)}</span>
+                    {#if match.status === 'completed'}<span class="cups">{match.cupsA}</span>{/if}
+                  </div>
+                  <div class="team" class:winner={match.status === 'completed' && match.cupsB > match.cupsA}>
+                    <span class="name">{teamName(match.teamB)}</span>
+                    {#if match.status === 'completed'}<span class="cups">{match.cupsB}</span>{/if}
+                  </div>
+                {:else}
+                  <div class="tbd">TBD</div>
+                {/if}
+              </div>
+            {/each}
+          </div>
         </div>
+      {/each}
+    </div>
+
+    {#if playoffs.thirdPlaceMatch}
+      {@const tpm = playoffs.thirdPlaceMatch}
+      <div class="third">
+        <span class="third-label">3rd Place</span>
+        <span class="name">{teamName(tpm.teamA)}</span>
+        <span class="vs">vs</span>
+        <span class="name">{teamName(tpm.teamB)}</span>
+        {#if tpm.status === 'completed'}
+          <span class="result">→ {teamName(tpm.cupsA > tpm.cupsB ? tpm.teamA : tpm.teamB)} wins</span>
+        {/if}
       </div>
-    {/each}
+    {/if}
   </div>
 
-  {#if playoffs.thirdPlaceMatch}
-    {@const tpm = playoffs.thirdPlaceMatch}
-    <div class="third">
-      <span class="third-label">3rd Place</span>
-      <span class="name">{teamName(tpm.teamA)}</span>
-      <span class="vs">vs</span>
-      <span class="name">{teamName(tpm.teamB)}</span>
-      {#if tpm.status === 'completed'}
-        <span class="result">→ {teamName(tpm.cupsA > tpm.cupsB ? tpm.teamA : tpm.teamB)} wins</span>
-      {/if}
-    </div>
-  {/if}
+  <!-- Always-visible standings -->
+  <div class="right-panel">
+    <Scoreboard />
+  </div>
+
 </div>
 
 <style>
   .view {
     display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Main panel ── */
+  .main-panel {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    padding: 2rem;
     gap: 2rem;
+    padding: 2rem;
+    min-width: 0;
+    overflow: hidden;
   }
 
   h1 {
@@ -95,6 +115,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     opacity: 0.85;
+    flex-shrink: 0;
   }
 
   .bracket {
@@ -103,6 +124,7 @@
     align-items: center;
     overflow-x: auto;
     flex: 1;
+    min-height: 0;
   }
 
   .round-col {
@@ -120,6 +142,7 @@
     opacity: 0.4;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #1e2435;
+    flex-shrink: 0;
   }
 
   .match-col {
@@ -141,7 +164,7 @@
   }
 
   .match.completed { border-color: #166534; }
-  .match.pending { opacity: 0.35; }
+  .match.pending   { opacity: 0.35; }
 
   .team {
     display: flex;
@@ -187,6 +210,7 @@
     border-top: 1px solid #1e2435;
     padding-top: 1.25rem;
     font-size: 1.2rem;
+    flex-shrink: 0;
   }
 
   .third-label {
@@ -197,8 +221,18 @@
     flex-shrink: 0;
   }
 
-  .vs { opacity: 0.4; }
+  .vs     { opacity: 0.4; }
   .result { color: #4ade80; font-weight: 700; margin-left: 0.5rem; }
+
+  /* ── Right panel (standings) ── */
+  .right-panel {
+    width: 20rem;
+    flex-shrink: 0;
+    padding: 2rem 1.5rem 2rem 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
 
   /* Light mode */
   :global(body.light) h1 { color: #111827; }

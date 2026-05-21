@@ -158,4 +158,26 @@
   button.icon { padding: 0.25rem 0.5rem; }
   button.danger { color: #f87171; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Light mode */
+  :global(body.light) .count { background: #e8eaed; color: #374151; }
+  :global(body.light) li { background: #e8eaed; }
+  :global(body.light) li.empty { background: transparent; }
+  :global(body.light) .add-row input {
+    background: var(--bg-input);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  :global(body.light) .edit-input {
+    background: var(--bg-input);
+    border-color: var(--border-focus);
+    color: var(--text-primary);
+  }
+  :global(body.light) .add-row button,
+  :global(body.light) .actions button {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text-primary);
+  }
+  :global(body.light) .actions button.danger { color: #dc2626; }
 </style>

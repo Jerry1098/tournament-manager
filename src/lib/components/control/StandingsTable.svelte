@@ -93,4 +93,10 @@
   td.neg { color: #f87171; }
 
   tr:hover td { background: #2a2d3640; }
+
+  /* Light mode */
+  :global(body.light) td { border-top-color: #e5e7eb; }
+  :global(body.light) tr:hover td { background: rgba(0,0,0,0.04); }
+  :global(body.light) td.pos { color: #16a34a; }
+  :global(body.light) td.neg { color: #dc2626; }
 </style>

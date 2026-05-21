@@ -7,9 +7,6 @@
   const t = $derived(tournamentStore.value!);
   const totalRounds = $derived(t.rounds.length);
 
-  // ── Which round is the projector showing ─────────────────────────────────
-  // Tracks the first incomplete round. Advances automatically as rounds
-  // complete; the operator can also click "Next Round →" manually.
   let viewIdx = $state(0);
 
   $effect(() => {
@@ -17,14 +14,14 @@
       (r) => r.matches.some((m) => m.status !== 'completed' && m.status !== 'bye')
     );
     const target = first === -1 ? totalRounds - 1 : first;
-    // Only auto-jump if the projector is lagging behind
     if (viewIdx < target) viewIdx = target;
   });
 
-  const round = $derived(t.rounds[viewIdx] ?? null);
+  const round     = $derived(t.rounds[viewIdx] ?? null);
+  const nextRound = $derived(viewIdx < totalRounds - 1 ? t.rounds[viewIdx + 1] : null);
 
   const playing   = $derived(round?.matches.filter((m) => m.status === 'inProgress')  ?? []);
-  const nextUp    = $derived(round?.matches.filter((m) => m.status === 'scheduled')    ?? []);
+  const scheduled = $derived(round?.matches.filter((m) => m.status === 'scheduled')   ?? []);
   const finished  = $derived(round?.matches.filter((m) => m.status === 'completed' || m.status === 'bye') ?? []);
   const roundDone = $derived(round?.matches.every((m) => m.status === 'completed' || m.status === 'bye') ?? false);
 
@@ -45,47 +42,48 @@
 
 <div class="view">
 
-  <!-- ── Header ────────────────────────────────────────────────────────── -->
+  <!-- ── Top bar ─────────────────────────────────────────────────────────── -->
   <div class="topbar">
     <span class="round-label">
       Round <strong>{viewIdx + 1}</strong>
       <span class="of">of {totalRounds}</span>
     </span>
     {#if roundDone && viewIdx < totalRounds - 1}
-      <button class="next-btn" onclick={advanceRound}>
-        Next Round →
-      </button>
+      <button class="next-btn" onclick={advanceRound}>Next Round →</button>
     {:else if roundDone && viewIdx === totalRounds - 1}
       <span class="all-done">All rounds complete — ready for playoffs!</span>
     {/if}
   </div>
 
-  <!-- ── Main content (active round) ──────────────────────────────────── -->
-  {#if !roundDone}
-    <!-- PLAYING NOW -->
-    {#if playing.length > 0}
-      <section class="now-playing">
-        <h2>Now Playing</h2>
-        <div class="match-grid">
-          {#each playing as m (m.id)}
-            <RunningMatch match={m} tournament={t} />
-          {/each}
-        </div>
-      </section>
-    {:else}
-      <section class="now-playing idle-section">
-        <h2>Now Playing</h2>
-        <p class="idle">No matches in progress</p>
-      </section>
-    {/if}
+  <!-- ── Body: current-round matches (left+center) + scoreboard (right) ── -->
+  <div class="body">
 
-    <!-- NEXT UP + FINISHED (in a row at the bottom) -->
-    <div class="lower">
-      {#if nextUp.length > 0}
-        <section class="next-up">
-          <h3>Next Up</h3>
+    <!-- Left panel: current round matches + next round preview -->
+    <div class="left-panel">
+
+      <!-- Now Playing -->
+      {#if playing.length > 0}
+        <section class="now-playing">
+          <h2>Now Playing</h2>
+          <div class="match-grid">
+            {#each playing as m (m.id)}
+              <RunningMatch match={m} tournament={t} />
+            {/each}
+          </div>
+        </section>
+      {:else if scheduled.length === 0 && finished.length === 0}
+        <section class="now-playing idle-section">
+          <h2>Now Playing</h2>
+          <p class="idle">No matches in progress</p>
+        </section>
+      {/if}
+
+      <!-- Not Started (scheduled matches of current round) -->
+      {#if scheduled.length > 0}
+        <section class="status-section">
+          <h3>Not Started</h3>
           <ul>
-            {#each nextUp as m (m.id)}
+            {#each scheduled as m (m.id)}
               {@const tbl = tableName(m.tableId)}
               <li>
                 {#if tbl}<span class="table-tag">{tbl}</span>{/if}
@@ -100,63 +98,57 @@
         </section>
       {/if}
 
+      <!-- Completed matches of current round -->
       {#if finished.length > 0}
-        <section class="finished-this-round">
-          <h3>Completed this round</h3>
+        <section class="status-section">
+          <h3>Completed</h3>
           <ul>
             {#each finished as m (m.id)}
-              {@const winner = m.cupsA < m.cupsB ? m.teamA : m.teamB}
-              <li>
-                <span class="pair muted">
-                  <span class:won={m.cupsA < m.cupsB}>{teamName(m.teamA)}</span>
-                  <span class="score">{m.cupsA}–{m.cupsB}</span>
-                  <span class:won={m.cupsB < m.cupsA}>{teamName(m.teamB)}</span>
-                </span>
-              </li>
+              {#if m.status !== 'bye'}
+                {@const aWon = m.cupsA < m.cupsB}
+                <li class="result-row">
+                  <span class="rpair">
+                    <span class:won={aWon}>{teamName(m.teamA)}</span>
+                    <span class="score">{m.cupsA}–{m.cupsB}</span>
+                    <span class:won={!aWon}>{teamName(m.teamB)}</span>
+                  </span>
+                </li>
+              {/if}
             {/each}
           </ul>
         </section>
       {/if}
 
-      <section class="score-section">
-        <Scoreboard />
-      </section>
-    </div>
-
-  {:else}
-    <!-- ROUND COMPLETE: show all results -->
-    <section class="round-complete">
-      <h2>Round {viewIdx + 1} Results</h2>
-      <div class="results-grid">
-        {#each round!.matches.filter(m => m.status !== 'bye') as m (m.id)}
-          {@const aWon = m.cupsA < m.cupsB}
-          {@const tbl = tableName(m.tableId)}
-          <div class="result-card">
-            {#if tbl}<div class="tbl-label">{tbl}</div>{/if}
-            <div class="result-row">
-              <span class="rteam" class:winner={aWon}>{teamName(m.teamA)}</span>
-              <span class="rscore">
-                <span class:win={aWon}>{m.cupsA}</span>
-                <span class="dash">–</span>
-                <span class:win={!aWon}>{m.cupsB}</span>
-              </span>
-              <span class="rteam right" class:winner={!aWon}>{teamName(m.teamB)}</span>
-            </div>
-          </div>
-        {/each}
+      <!-- ── Next round preview ──────────────────────────────────────────── -->
+      <div class="next-round-preview">
+        {#if nextRound}
+          <h3>Up Next — Round {viewIdx + 2}</h3>
+          <ul>
+            {#each nextRound.matches.filter(m => m.teamB !== 'BYE') as m (m.id)}
+              {@const tbl = tableName(m.tableId)}
+              <li>
+                {#if tbl}<span class="table-tag">{tbl}</span>{/if}
+                <span class="pair">
+                  {teamName(m.teamA)}
+                  <span class="vs">vs</span>
+                  {teamName(m.teamB)}
+                </span>
+              </li>
+            {/each}
+          </ul>
+        {:else if roundDone}
+          <span class="all-done">All rounds complete — ready for playoffs!</span>
+        {/if}
       </div>
 
-      {#if viewIdx < totalRounds - 1}
-        <div class="next-prompt">
-          <button class="next-btn large" onclick={advanceRound}>
-            Round {viewIdx + 2} →
-          </button>
-        </div>
-      {:else}
-        <p class="all-done large">All rounds complete — ready for playoffs!</p>
-      {/if}
-    </section>
-  {/if}
+    </div><!-- /left-panel -->
+
+    <!-- Right panel: always-visible standings -->
+    <div class="right-panel">
+      <Scoreboard />
+    </div>
+
+  </div><!-- /body -->
 
 </div>
 
@@ -164,9 +156,10 @@
   .view {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     padding: 1.5rem 2rem;
-    gap: 1.25rem;
+    gap: 1rem;
+    overflow: hidden;
   }
 
   /* ── Top bar ── */
@@ -178,12 +171,7 @@
     flex-shrink: 0;
   }
 
-  .round-label {
-    font-size: 1.1rem;
-    color: #6b7280;
-    letter-spacing: 0.05em;
-  }
-
+  .round-label { font-size: 1.1rem; color: #6b7280; letter-spacing: 0.05em; }
   .round-label strong { color: #e2e8f0; font-size: 1.3rem; }
   .of { opacity: 0.6; }
 
@@ -201,14 +189,29 @@
   }
 
   .next-btn:hover { background: #1d4ed8; }
-  .next-btn.large { font-size: 1.4rem; padding: 0.7rem 2.5rem; }
-
   .all-done { color: #4ade80; font-size: 0.95rem; font-weight: 600; }
-  .all-done.large { font-size: 1.4rem; text-align: center; }
 
-  /* ── Section headings ── */
+  /* ── Body (left + right) ── */
+  .body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 2rem;
+  }
+
+  /* ── Left panel ── */
+  .left-panel {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+
+  /* Section headings */
   h2 {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.65rem;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
@@ -216,7 +219,7 @@
   }
 
   h3 {
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.5rem;
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -224,7 +227,7 @@
   }
 
   /* ── Now Playing ── */
-  .now-playing { flex: 1; min-height: 0; }
+  .now-playing { flex-shrink: 0; }
   .idle-section { display: flex; flex-direction: column; }
   .idle { color: #374151; font-size: 1.25rem; margin: 0; }
 
@@ -234,27 +237,21 @@
     gap: 1rem;
   }
 
-  /* ── Lower row ── */
-  .lower {
-    display: flex;
-    gap: 2rem;
-    align-items: flex-start;
-    flex-shrink: 0;
-  }
+  /* ── Status sections (not-started + completed) ── */
+  .status-section { flex-shrink: 0; }
 
-  /* ── Next Up ── */
-  .next-up { flex: 0 0 auto; min-width: 18rem; }
-
-  .next-up ul, .finished-this-round ul {
+  .status-section ul,
+  .next-round-preview ul {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.4rem;
   }
 
-  .next-up li, .finished-this-round li {
+  .status-section li,
+  .next-round-preview li {
     display: flex;
     align-items: center;
     gap: 0.65rem;
@@ -274,114 +271,37 @@
   }
 
   .pair { font-weight: 600; color: #d1d5db; }
-  .pair.muted { color: #9ca3af; }
-  .vs { color: #374151; font-weight: 400; margin: 0 0.35rem; }
+  .vs   { color: #374151; font-weight: 400; margin: 0 0.3rem; }
 
-  .pair .won { color: #4ade80; }
+  .result-row { font-size: 0.95rem; }
+  .rpair { display: flex; align-items: center; gap: 0.4rem; color: #9ca3af; font-weight: 600; }
+  .rpair .won { color: #4ade80; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 700; color: #6b7280; margin: 0 0.25rem; }
 
-  .score {
-    font-size: 0.95rem;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700;
-    color: #6b7280;
-    margin: 0 0.4rem;
-  }
+  /* ── Next round preview ── */
+  .next-round-preview { flex-shrink: 0; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid #1e243540; }
 
-  /* ── Finished this round ── */
-  .finished-this-round { flex: 0 0 auto; min-width: 16rem; }
-
-  /* ── Scoreboard ── */
-  .score-section { flex: 1; min-width: 0; }
-
-  /* ── Round Complete view ── */
-  .round-complete {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .round-complete h2 {
-    font-size: 1.2rem;
-    color: #9ca3af;
-    margin: 0;
-  }
-
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-    gap: 0.75rem;
-  }
-
-  .result-card {
-    background: #141824;
-    border: 1px solid #1e2435;
-    border-radius: 10px;
-    padding: 0.65rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .tbl-label {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #374151;
-    font-weight: 700;
-  }
-
-  .result-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .rteam {
-    flex: 1;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #9ca3af;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .rteam.right { text-align: right; }
-  .rteam.winner { color: #4ade80; }
-
-  .rscore {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    font-size: 1.5rem;
-    font-weight: 900;
-    font-variant-numeric: tabular-nums;
+  /* ── Right panel (scoreboard) ── */
+  .right-panel {
+    width: 20rem;
     flex-shrink: 0;
-  }
-
-  .rscore .win  { color: #4ade80; }
-  .rscore .dash { color: #1f2937; font-size: 1rem; }
-
-  .next-prompt {
     display: flex;
-    justify-content: center;
-    padding: 1rem 0;
+    flex-direction: column;
+    min-height: 0;
   }
 
   /* Light mode */
-  :global(body.light) h2 { color: #6b7280; }
-  :global(body.light) h3 { color: #9ca3af; }
+  :global(body.light) .round-label { color: #6b7280; }
   :global(body.light) .round-label strong { color: #111827; }
   :global(body.light) .all-done { color: #16a34a; }
-  :global(body.light) .idle { color: #9ca3af; }
+  :global(body.light) h2 { color: #6b7280; }
+  :global(body.light) h3 { color: #9ca3af; }
   :global(body.light) .table-tag { background: #e8eaed; border-color: #d1d5db; color: #6b7280; }
   :global(body.light) .pair { color: #111827; }
-  :global(body.light) .pair.muted { color: #374151; }
-  :global(body.light) .vs { color: #9ca3af; }
-  :global(body.light) .result-card { background: #ffffff; border-color: #d1d5db; }
-  :global(body.light) .tbl-label { color: #9ca3af; }
-  :global(body.light) .rteam { color: #374151; }
-  :global(body.light) .rteam.winner { color: #16a34a; }
-  :global(body.light) .rscore .dash { color: #9ca3af; }
+  :global(body.light) .vs  { color: #9ca3af; }
+  :global(body.light) .rpair { color: #374151; }
+  :global(body.light) .rpair .won { color: #16a34a; }
+  :global(body.light) .score { color: #6b7280; }
+  :global(body.light) .idle { color: #9ca3af; }
+  :global(body.light) .next-round-preview { border-top-color: #d1d5db40; }
 </style>

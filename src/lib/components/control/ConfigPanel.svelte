@@ -293,4 +293,12 @@
 
   .create-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .create-btn:hover:not(:disabled) { background: var(--accent-hov, #1d4ed8); }
+
+  /* Light mode */
+  :global(body.light) .calc-preview {
+    background: var(--bg-input, #f0f2f5);
+    border-color: var(--border, #d1d5db);
+  }
+
+  :global(body.light) .icon-btn:hover { background: var(--bg-elevated, #e8eaed); }
 </style>
