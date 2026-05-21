@@ -16,18 +16,27 @@
   const t = $derived(tournamentStore.value);
   const phase = $derived(t?.phase);
 
-  // Track the first incomplete round. On initial generation, jump to round 0.
-  // Only auto-advance if the user is on the round that just completed.
+  // Plain variable (not reactive) — used to detect when rounds are added.
+  // Reading it inside $effect creates no dependency, so it won't cause loops.
+  let _prevRoundCount = 0;
+
   $effect(() => {
     if (!t || t.rounds.length === 0) return;
+    const count = t.rounds.length;
     const firstIncomplete = t.rounds.findIndex(
       (r) => r.matches.some((m) => m.status !== 'completed' && m.status !== 'bye')
     );
-    const target = firstIncomplete === -1 ? t.rounds.length - 1 : firstIncomplete;
-    // Only auto-navigate if the user is already on the just-completed round
-    // or if we have more rounds than tabs the user has seen.
-    if (activeRound >= t.rounds.length || activeRound === target - 1) {
-      activeRound = target;
+    const target = firstIncomplete === -1 ? count - 1 : firstIncomplete;
+
+    if (count !== _prevRoundCount) {
+      // Rounds were added (or initial load) — auto-navigate to the active round.
+      if (activeRound >= count || activeRound === target - 1) {
+        activeRound = target;
+      }
+      _prevRoundCount = count;
+    } else if (activeRound >= count) {
+      // Fix out-of-bounds without overriding a deliberate selection.
+      activeRound = count - 1;
     }
   });
 
@@ -173,13 +182,15 @@
   .app {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
   }
 
   .content {
     flex: 1;
     padding: 1.25rem 1.5rem;
     overflow-y: auto;
+    min-height: 0;
   }
 
   /* Splash */
@@ -275,6 +286,7 @@
     display: flex;
     gap: 1.5rem;
     align-items: flex-start;
+    min-height: 100%;
   }
 
   .rounds-panel {
@@ -313,6 +325,10 @@
     display: flex;
     flex-direction: column;
     gap: 0;
+    position: sticky;
+    top: 0;
+    max-height: calc(100vh - 3.5rem);
+    overflow-y: auto;
   }
 
   .no-rounds {

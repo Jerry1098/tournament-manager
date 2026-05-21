@@ -272,6 +272,7 @@
     flex-direction: column;
     gap: 0.55rem;
     transition: border-color 0.15s;
+    min-height: 9.5rem;
   }
 
   .card.in-progress { border-color: #2563eb; background: #1a1f30; }
