@@ -9,6 +9,73 @@ use crate::state::SharedState;
 use crate::storage;
 
 #[tauri::command]
+pub async fn start_playoff_match(
+    match_id: String,
+    state: State<'_, SharedState>,
+    app: AppHandle,
+) -> Result<(), AppError> {
+    let mut guard = state.lock().unwrap();
+    let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
+    let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
+    require_phase(t, &Phase::Playoffs, "start_playoff_match")?;
+
+    let m = find_playoff_match(t, &match_id)?;
+    if m.status != MatchStatus::Scheduled {
+        return Err(AppError::InvalidArgument(format!(
+            "Match {} is not Scheduled (status: {:?})", match_id, m.status
+        )));
+    }
+    if m.team_a.is_empty() || m.team_b.is_empty() {
+        return Err(AppError::InvalidArgument("Both teams must be assigned before starting".into()));
+    }
+
+    m.status = MatchStatus::InProgress;
+    m.started_at = Some(Utc::now());
+    m.paused_at = None;
+    m.paused_elapsed_seconds = 0;
+
+    t.updated_at = Utc::now();
+    storage::save(t, &path)?;
+    let t_clone = guard.current.clone().unwrap();
+    drop(guard);
+
+    events::emit_tournament_updated(&app, &t_clone);
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn cancel_playoff_match(
+    match_id: String,
+    state: State<'_, SharedState>,
+    app: AppHandle,
+) -> Result<(), AppError> {
+    let mut guard = state.lock().unwrap();
+    let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
+    let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
+    require_phase(t, &Phase::Playoffs, "cancel_playoff_match")?;
+
+    let m = find_playoff_match(t, &match_id)?;
+    if m.status != MatchStatus::InProgress {
+        return Err(AppError::InvalidArgument(format!(
+            "Match {} is not InProgress", match_id
+        )));
+    }
+
+    m.status = MatchStatus::Scheduled;
+    m.started_at = None;
+    m.paused_at = None;
+    m.paused_elapsed_seconds = 0;
+
+    t.updated_at = Utc::now();
+    storage::save(t, &path)?;
+    let t_clone = guard.current.clone().unwrap();
+    drop(guard);
+
+    events::emit_tournament_updated(&app, &t_clone);
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn start_playoffs(
     state: State<'_, SharedState>,
     app: AppHandle,

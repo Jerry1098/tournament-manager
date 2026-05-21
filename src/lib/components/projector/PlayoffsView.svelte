@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tournamentStore } from '$lib/stores/tournament.svelte';
   import Scoreboard from './Scoreboard.svelte';
+  import RunningMatch from './RunningMatch.svelte';
   import type { Match } from '$lib/ipc/types';
 
   const t = $derived(tournamentStore.value!);
@@ -31,56 +32,79 @@
     if (r === 2) return 'Quarter-finals';
     return `Round of ${2 ** (r + 1)}`;
   }
+
+  const allMatches = $derived([
+    ...playoffs.matches,
+    ...(playoffs.thirdPlaceMatch ? [playoffs.thirdPlaceMatch] : []),
+  ]);
+
+  const runningMatches = $derived(allMatches.filter((m) => m.status === 'inProgress'));
 </script>
 
 <div class="view">
 
-  <!-- Bracket area -->
+  <!-- Main panel: Now Playing + Bracket -->
   <div class="main-panel">
     <h1>Playoffs</h1>
 
-    <div class="bracket">
-      {#each rounds() as roundMatches, col}
-        <div class="round-col">
-          <div class="round-label">{roundLabel(col)}</div>
-          <div class="match-col">
-            {#each roundMatches as match (match?.id)}
-              <div
-                class="match"
-                class:completed={match?.status === 'completed'}
-                class:pending={!match?.teamA || !match?.teamB}
-              >
-                {#if match}
-                  <div class="team" class:winner={match.status === 'completed' && match.cupsA > match.cupsB}>
-                    <span class="name">{teamName(match.teamA)}</span>
-                    {#if match.status === 'completed'}<span class="cups">{match.cupsA}</span>{/if}
-                  </div>
-                  <div class="team" class:winner={match.status === 'completed' && match.cupsB > match.cupsA}>
-                    <span class="name">{teamName(match.teamB)}</span>
-                    {#if match.status === 'completed'}<span class="cups">{match.cupsB}</span>{/if}
-                  </div>
-                {:else}
-                  <div class="tbd">TBD</div>
-                {/if}
-              </div>
-            {/each}
-          </div>
+    <!-- Now Playing (in-progress playoff matches) -->
+    {#if runningMatches.length > 0}
+      <section class="now-playing">
+        <h2>Now Playing</h2>
+        <div class="match-grid">
+          {#each runningMatches as m (m.id)}
+            <RunningMatch match={m} tournament={t} />
+          {/each}
         </div>
-      {/each}
-    </div>
-
-    {#if playoffs.thirdPlaceMatch}
-      {@const tpm = playoffs.thirdPlaceMatch}
-      <div class="third">
-        <span class="third-label">3rd Place</span>
-        <span class="name">{teamName(tpm.teamA)}</span>
-        <span class="vs">vs</span>
-        <span class="name">{teamName(tpm.teamB)}</span>
-        {#if tpm.status === 'completed'}
-          <span class="result">→ {teamName(tpm.cupsA > tpm.cupsB ? tpm.teamA : tpm.teamB)} wins</span>
-        {/if}
-      </div>
+      </section>
     {/if}
+
+    <!-- Bracket -->
+    <div class="bracket-area">
+      <div class="bracket">
+        {#each rounds() as roundMatches, col}
+          <div class="round-col">
+            <div class="round-label">{roundLabel(col)}</div>
+            <div class="match-col">
+              {#each roundMatches as match (match?.id)}
+                <div
+                  class="match"
+                  class:completed={match?.status === 'completed'}
+                  class:in-progress={match?.status === 'inProgress'}
+                  class:pending={!match?.teamA || !match?.teamB}
+                >
+                  {#if match}
+                    <div class="team" class:winner={match.status === 'completed' && match.cupsA > match.cupsB}>
+                      <span class="name">{teamName(match.teamA)}</span>
+                      {#if match.status === 'completed'}<span class="cups">{match.cupsA}</span>{/if}
+                    </div>
+                    <div class="team" class:winner={match.status === 'completed' && match.cupsB > match.cupsA}>
+                      <span class="name">{teamName(match.teamB)}</span>
+                      {#if match.status === 'completed'}<span class="cups">{match.cupsB}</span>{/if}
+                    </div>
+                  {:else}
+                    <div class="tbd">TBD</div>
+                  {/if}
+                </div>
+              {/each}
+            </div>
+          </div>
+        {/each}
+      </div>
+
+      {#if playoffs.thirdPlaceMatch}
+        {@const tpm = playoffs.thirdPlaceMatch}
+        <div class="third">
+          <span class="third-label">3rd Place</span>
+          <span class="name">{teamName(tpm.teamA)}</span>
+          <span class="vs">vs</span>
+          <span class="name">{teamName(tpm.teamB)}</span>
+          {#if tpm.status === 'completed'}
+            <span class="result">→ {teamName(tpm.cupsA > tpm.cupsB ? tpm.teamA : tpm.teamB)} wins</span>
+          {/if}
+        </div>
+      {/if}
+    </div>
   </div>
 
   <!-- Always-visible standings -->
@@ -102,7 +126,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.25rem;
     padding: 2rem;
     min-width: 0;
     overflow: hidden;
@@ -118,13 +142,38 @@
     flex-shrink: 0;
   }
 
+  /* ── Now Playing ── */
+  .now-playing { flex-shrink: 0; }
+
+  h2 {
+    margin: 0 0 0.65rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6b7280;
+  }
+
+  .match-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+    gap: 1rem;
+  }
+
+  /* ── Bracket ── */
+  .bracket-area {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: auto;
+  }
+
   .bracket {
     display: flex;
     gap: 2rem;
     align-items: center;
-    overflow-x: auto;
-    flex: 1;
-    min-height: 0;
+    min-width: min-content;
   }
 
   .round-col {
@@ -163,8 +212,9 @@
     flex-direction: column;
   }
 
-  .match.completed { border-color: #166534; }
-  .match.pending   { opacity: 0.35; }
+  .match.completed  { border-color: #166534; }
+  .match.in-progress{ border-color: #2563eb; }
+  .match.pending    { opacity: 0.35; }
 
   .team {
     display: flex;
@@ -236,9 +286,11 @@
 
   /* Light mode */
   :global(body.light) h1 { color: #111827; }
+  :global(body.light) h2 { color: #6b7280; }
   :global(body.light) .round-label { border-bottom-color: #d1d5db; }
   :global(body.light) .match { background: #ffffff; border-color: #d1d5db; }
-  :global(body.light) .match.completed { border-color: #16a34a; }
+  :global(body.light) .match.completed  { border-color: #16a34a; }
+  :global(body.light) .match.in-progress{ border-color: #2563eb; }
   :global(body.light) .team { border-bottom-color: #e5e7eb; }
   :global(body.light) .name { color: #111827; }
   :global(body.light) .team.winner .name { color: #16a34a; }

@@ -53,6 +53,24 @@ pub fn find_group_match<'a>(t: &'a mut Tournament, match_id: &str) -> Result<&'a
     Err(AppError::NotFound(format!("match {match_id}")))
 }
 
+/// Find a match by ID in either group rounds or playoffs.
+pub fn find_any_match<'a>(t: &'a mut Tournament, match_id: &str) -> Result<&'a mut Match, AppError> {
+    for round in &mut t.rounds {
+        if let Some(m) = round.matches.iter_mut().find(|m| m.id == match_id) {
+            return Ok(m);
+        }
+    }
+    if let Some(playoffs) = t.playoffs.as_mut() {
+        if let Some(m) = playoffs.third_place_match.as_mut().filter(|m| m.id == match_id) {
+            return Ok(m);
+        }
+        if let Some(m) = playoffs.matches.iter_mut().find(|m| m.id == match_id) {
+            return Ok(m);
+        }
+    }
+    Err(AppError::NotFound(format!("match {match_id}")))
+}
+
 /// Find a match by ID in playoffs matches.
 pub fn find_playoff_match<'a>(t: &'a mut Tournament, match_id: &str) -> Result<&'a mut Match, AppError> {
     let playoffs = t

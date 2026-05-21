@@ -3,6 +3,7 @@
   import { tournamentStore } from '$lib/stores/tournament.svelte';
   import GroupPhaseView from '$lib/components/projector/GroupPhaseView.svelte';
   import PlayoffsView from '$lib/components/projector/PlayoffsView.svelte';
+  import ResultsView from '$lib/components/projector/ResultsView.svelte';
   import { toggleFullscreenProjector } from '$lib/ipc/commands';
 
   const t = $derived(tournamentStore.value);
@@ -49,10 +50,7 @@
       <PlayoffsView />
 
     {:else if phase === 'finished'}
-      <div class="finished">
-        <h1>Tournament Complete!</h1>
-        <p class="sub">Thanks for playing</p>
-      </div>
+      <ResultsView />
     {/if}
   </div>
 
@@ -77,7 +75,7 @@
     /* dimensions are set inline; transform-origin: top left in inline style */
   }
 
-  .idle, .finished {
+  .idle {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -93,16 +91,6 @@
     opacity: 0.3;
     font-size: 1.5rem;
   }
-
-  .finished h1 {
-    margin: 0;
-    font-size: 4rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .finished .sub { opacity: 0.4; font-size: 1.25rem; margin: 0; }
 
   /* Scale controls */
   .scale-controls {
