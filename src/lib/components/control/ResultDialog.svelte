@@ -221,6 +221,27 @@
   button.primary:not(:disabled):hover { background: #1d4ed8; }
 
   /* Light mode */
+  :global(body.light) .backdrop { background: #00000050; }
+  :global(body.light) .dialog {
+    background: #ffffff;
+    border-color: #d1d5db;
+  }
+  :global(body.light) h2 { color: #111827; }
+  :global(body.light) .hint { color: #6b7280; }
+  :global(body.light) .team-name { color: #111827; }
+  :global(body.light) .cups-label { color: #6b7280; }
+  :global(body.light) .cups {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #111827;
+  }
   :global(body.light) .cups.is-winner { border-color: #16a34a; color: #16a34a; }
+  :global(body.light) .vs { color: #374151; opacity: 0.6; }
   :global(body.light) .winner { color: #16a34a; }
+  :global(body.light) button {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+  :global(body.light) button.primary { background: #2563eb; border-color: #1d4ed8; color: #fff; }
 </style>

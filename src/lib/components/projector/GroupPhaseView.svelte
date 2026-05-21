@@ -20,8 +20,16 @@
   const round     = $derived(t.rounds[viewIdx] ?? null);
   const nextRound = $derived(viewIdx < totalRounds - 1 ? t.rounds[viewIdx + 1] : null);
 
-  const playing   = $derived(round?.matches.filter((m) => m.status === 'inProgress')  ?? []);
-  const scheduled = $derived(round?.matches.filter((m) => m.status === 'scheduled')   ?? []);
+  function sortByTable(matches: Match[]) {
+    return [...matches].sort((a, b) => {
+      const ta = tableName(a.tableId) ?? '';
+      const tb = tableName(b.tableId) ?? '';
+      return ta.localeCompare(tb);
+    });
+  }
+
+  const playing   = $derived(sortByTable(round?.matches.filter((m) => m.status === 'inProgress')  ?? []));
+  const scheduled = $derived(sortByTable(round?.matches.filter((m) => m.status === 'scheduled')   ?? []));
   const finished  = $derived(round?.matches.filter((m) => m.status === 'completed' || m.status === 'bye') ?? []);
   const roundDone = $derived(round?.matches.every((m) => m.status === 'completed' || m.status === 'bye') ?? false);
 
@@ -82,19 +90,19 @@
       {#if scheduled.length > 0}
         <section class="status-section">
           <h3>Not Started</h3>
-          <ul>
+          <div class="small-grid">
             {#each scheduled as m (m.id)}
               {@const tbl = tableName(m.tableId)}
-              <li>
-                {#if tbl}<span class="table-tag">{tbl}</span>{/if}
-                <span class="pair">
-                  {teamName(m.teamA)}
-                  <span class="vs">vs</span>
-                  {teamName(m.teamB)}
-                </span>
-              </li>
+              <div class="small-card sched-card">
+                {#if tbl}<div class="small-table">{tbl}</div>{/if}
+                <div class="small-teams">
+                  <span class="small-team">{teamName(m.teamA)}</span>
+                  <span class="small-vs">vs</span>
+                  <span class="small-team right">{teamName(m.teamB)}</span>
+                </div>
+              </div>
             {/each}
-          </ul>
+          </div>
         </section>
       {/if}
 
@@ -102,20 +110,24 @@
       {#if finished.length > 0}
         <section class="status-section">
           <h3>Completed</h3>
-          <ul>
+          <div class="small-grid">
             {#each finished as m (m.id)}
               {#if m.status !== 'bye'}
                 {@const aWon = m.cupsA < m.cupsB}
-                <li class="result-row">
-                  <span class="rpair">
-                    <span class:won={aWon}>{teamName(m.teamA)}</span>
-                    <span class="score">{m.cupsA}–{m.cupsB}</span>
-                    <span class:won={!aWon}>{teamName(m.teamB)}</span>
-                  </span>
-                </li>
+                <div class="small-card done-card">
+                  <div class="small-teams">
+                    <span class="small-team" class:won={aWon}>{teamName(m.teamA)}</span>
+                    <div class="small-score-block">
+                      <span class="small-score" class:win={aWon}>{m.cupsA}</span>
+                      <span class="small-dash">–</span>
+                      <span class="small-score" class:win={!aWon}>{m.cupsB}</span>
+                    </div>
+                    <span class="small-team right" class:won={!aWon}>{teamName(m.teamB)}</span>
+                  </div>
+                </div>
               {/if}
             {/each}
-          </ul>
+          </div>
         </section>
       {/if}
 
@@ -124,7 +136,7 @@
         {#if nextRound}
           <h3>Up Next — Round {viewIdx + 2}</h3>
           <ul>
-            {#each nextRound.matches.filter(m => m.teamB !== 'BYE') as m (m.id)}
+            {#each sortByTable(nextRound.matches.filter(m => m.teamB !== 'BYE')) as m (m.id)}
               {@const tbl = tableName(m.tableId)}
               <li>
                 {#if tbl}<span class="table-tag">{tbl}</span>{/if}
@@ -156,7 +168,7 @@
   .view {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     padding: 1.5rem 2rem;
     gap: 1rem;
     overflow: hidden;
@@ -240,7 +252,84 @@
   /* ── Status sections (not-started + completed) ── */
   .status-section { flex-shrink: 0; }
 
-  .status-section ul,
+  /* Small card grid — same column logic as match-grid but narrower min */
+  .small-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: 0.65rem;
+  }
+
+  .small-card {
+    border-radius: 10px;
+    padding: 0.7rem 1rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .sched-card {
+    background: #0e1220;
+    border: 1.5px solid #2a3050;
+  }
+
+  .done-card {
+    background: #0d1a10;
+    border: 1.5px solid #14532d;
+  }
+
+  .small-table {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #6b7280;
+  }
+
+  .small-teams {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .small-team {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #d1d5db;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .small-team.right { text-align: right; }
+  .small-team.won   { color: #4ade80; }
+
+  .small-vs {
+    font-size: 0.8rem;
+    color: #374151;
+    flex-shrink: 0;
+  }
+
+  .small-score-block {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .small-score {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: #9ca3af;
+  }
+
+  .small-score.win { color: #4ade80; }
+  .small-dash      { font-size: 1rem; opacity: 0.3; }
+
+  /* Next-round preview retains list layout */
   .next-round-preview ul {
     list-style: none;
     margin: 0;
@@ -250,7 +339,6 @@
     gap: 0.4rem;
   }
 
-  .status-section li,
   .next-round-preview li {
     display: flex;
     align-items: center;
@@ -273,11 +361,6 @@
   .pair { font-weight: 600; color: #d1d5db; }
   .vs   { color: #374151; font-weight: 400; margin: 0 0.3rem; }
 
-  .result-row { font-size: 0.95rem; }
-  .rpair { display: flex; align-items: center; gap: 0.4rem; color: #9ca3af; font-weight: 600; }
-  .rpair .won { color: #4ade80; }
-  .score { font-variant-numeric: tabular-nums; font-weight: 700; color: #6b7280; margin: 0 0.25rem; }
-
   /* ── Next round preview ── */
   .next-round-preview { flex-shrink: 0; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid #1e243540; }
 
@@ -296,12 +379,16 @@
   :global(body.light) .all-done { color: #16a34a; }
   :global(body.light) h2 { color: #6b7280; }
   :global(body.light) h3 { color: #9ca3af; }
+  :global(body.light) .sched-card { background: #f3f4f6; border-color: #d1d5db; }
+  :global(body.light) .done-card  { background: #f0fdf4; border-color: #16a34a; }
+  :global(body.light) .small-team  { color: #111827; }
+  :global(body.light) .small-team.won { color: #16a34a; }
+  :global(body.light) .small-vs   { color: #9ca3af; }
+  :global(body.light) .small-score { color: #374151; }
+  :global(body.light) .small-score.win { color: #16a34a; }
   :global(body.light) .table-tag { background: #e8eaed; border-color: #d1d5db; color: #6b7280; }
   :global(body.light) .pair { color: #111827; }
   :global(body.light) .vs  { color: #9ca3af; }
-  :global(body.light) .rpair { color: #374151; }
-  :global(body.light) .rpair .won { color: #16a34a; }
-  :global(body.light) .score { color: #6b7280; }
   :global(body.light) .idle { color: #9ca3af; }
   :global(body.light) .next-round-preview { border-top-color: #d1d5db40; }
 </style>

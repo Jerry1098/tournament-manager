@@ -348,25 +348,37 @@ fn try_generate_schedule(
 ///
 /// Strategy:
 ///   For each `total_games` in `[swiss_rounds, swiss_rounds + max_round_extension]`:
-///     Try 10 attempts with varied seeds. Return the first success.
+///     Try `schedule_attempts` seeded variants. Collect all successes and pick the
+///     one with the fewest scheduling rounds (most efficient time-slot packing).
 ///   If all budgets exhausted, fall back to a schedule without category balance.
 pub fn generate_full_schedule(t: &mut Tournament) {
     let base = t.config.swiss_rounds;
     let max_extra = t.config.max_round_extension;
+    let attempts = t.config.schedule_attempts.max(1) as u64;
 
     for extra in 0..=max_extra {
         let total_games = base + extra;
-        for attempt in 0u64..10 {
+        let mut best: Option<Vec<Round>> = None;
+
+        for attempt in 0..attempts {
             let seed = t.config.random_seed
                 .wrapping_add(attempt.wrapping_mul(0x9e37_79b9_7f4a_7c15))
                 .wrapping_add((extra as u64).wrapping_mul(0x6c62_272e_07bb_0142));
             let mut rng = ChaCha8Rng::seed_from_u64(seed);
 
             if let Some(rounds) = try_generate_schedule(t, total_games, &mut rng) {
-                t.rounds = rounds;
-                t.phase = Phase::Group;
-                return;
+                // Keep the candidate with the fewest scheduling rounds; ties favour
+                // the lower attempt index so the result remains deterministic.
+                if best.as_ref().map_or(true, |b| rounds.len() < b.len()) {
+                    best = Some(rounds);
+                }
             }
+        }
+
+        if let Some(rounds) = best {
+            t.rounds = rounds;
+            t.phase = Phase::Group;
+            return;
         }
     }
 
@@ -433,6 +445,7 @@ mod tests {
                 random_seed: seed,
                 default_match_minutes: 0,
                 max_round_extension: 3,
+                schedule_attempts: 10,
             },
             teams,
             phase: Phase::Setup,
@@ -642,6 +655,7 @@ mod tests {
                 random_seed: 5,
                 default_match_minutes: 0,
                 max_round_extension: 3,
+                schedule_attempts: 10,
             },
             teams: (0..n).map(|i| Team { id: format!("T{i}"), name: format!("Team{i}") }).collect(),
             phase: Phase::Setup,

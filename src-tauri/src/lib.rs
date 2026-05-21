@@ -35,6 +35,8 @@ pub fn run() {
             commands::match_cmd::resume_match_timer,
             commands::match_cmd::set_match_time_limit,
             commands::playoffs::start_playoffs,
+            commands::playoffs::start_playoff_match,
+            commands::playoffs::cancel_playoff_match,
             commands::playoffs::submit_playoff_result,
             commands::standings::get_standings,
             commands::standings::get_balance_report,

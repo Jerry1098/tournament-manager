@@ -34,9 +34,15 @@ pub struct TournamentConfig {
     /// per-category balance. 0 = never extend. Default 3.
     #[serde(default = "default_max_round_extension")]
     pub max_round_extension: u32,
+    /// How many seeded schedule candidates to generate per game-count level.
+    /// All successes are compared and the one with fewest scheduling rounds is used.
+    /// Default 10.
+    #[serde(default = "default_schedule_attempts")]
+    pub schedule_attempts: u32,
 }
 
 fn default_max_round_extension() -> u32 { 3 }
+fn default_schedule_attempts() -> u32 { 10 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

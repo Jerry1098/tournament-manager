@@ -1,6 +1,6 @@
 use chrono::Utc;
 use tauri::{AppHandle, State};
-use crate::domain::lifecycle::{find_group_match, in_progress_count};
+use crate::domain::lifecycle::{find_any_match, find_group_match, in_progress_count};
 use crate::domain::model::MatchStatus;
 use crate::domain::standings::compute_standings;
 use crate::error::AppError;
@@ -243,7 +243,7 @@ pub async fn pause_match_timer(
     let mut guard = state.lock().unwrap();
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
     let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
-    let m = find_group_match(t, &match_id)?;
+    let m = find_any_match(t, &match_id)?;
 
     if m.status != MatchStatus::InProgress {
         return Err(AppError::InvalidArgument("Can only pause InProgress matches".into()));
@@ -274,7 +274,7 @@ pub async fn resume_match_timer(
     let mut guard = state.lock().unwrap();
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
     let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
-    let m = find_group_match(t, &match_id)?;
+    let m = find_any_match(t, &match_id)?;
 
     if m.status != MatchStatus::InProgress {
         return Err(AppError::InvalidArgument("Can only resume InProgress matches".into()));
@@ -306,7 +306,7 @@ pub async fn set_match_time_limit(
     let mut guard = state.lock().unwrap();
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
     let t = guard.current.as_mut().ok_or(AppError::NoTournament)?;
-    let m = find_group_match(t, &match_id)?;
+    let m = find_any_match(t, &match_id)?;
 
     m.time_limit_seconds = seconds;
     let m_clone = m.clone();

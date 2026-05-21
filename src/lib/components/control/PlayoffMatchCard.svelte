@@ -1,13 +1,11 @@
 <script lang="ts">
   import {
-    cancelMatch,
-    editResult,
+    cancelPlayoffMatch,
     pauseMatchTimer,
-    reassignTable,
     resumeMatchTimer,
     setMatchTimeLimit,
-    startMatch,
-    submitResult,
+    startPlayoffMatch,
+    submitPlayoffResult,
   } from '$lib/ipc/commands';
   import { tournamentStore } from '$lib/stores/tournament.svelte';
   import type { Match } from '$lib/ipc/types';
@@ -18,17 +16,15 @@
   const t = $derived(tournamentStore.value!);
   const teamA = $derived(t.teams.find((x) => x.id === match.teamA)?.name ?? match.teamA);
   const teamB = $derived(t.teams.find((x) => x.id === match.teamB)?.name ?? match.teamB);
-  const isBye = $derived(match.teamB === 'BYE');
   const isPaused = $derived(match.pausedAt != null);
+  const hasBothTeams = $derived(!!match.teamA && !!match.teamB);
 
-  // Effective time limit in seconds (per-match override or tournament default)
   const timeLimitSec = $derived(() => {
     if (match.timeLimitSeconds != null) return match.timeLimitSeconds;
     const mins = t.config.defaultMatchMinutes;
     return mins > 0 ? mins * 60 : 0;
   });
 
-  // Live elapsed seconds — updates every second while running
   let elapsedSec = $state(0);
 
   $effect(() => {
@@ -36,7 +32,6 @@
       elapsedSec = 0;
       return;
     }
-
     const compute = () => {
       const startMs = new Date(match.startedAt!).getTime();
       const pausedElapsed = match.pausedElapsedSeconds ?? 0;
@@ -47,7 +42,6 @@
         elapsedSec = Math.floor((Date.now() - startMs) / 1000) - pausedElapsed;
       }
     };
-
     compute();
     if (!match.pausedAt) {
       const id = setInterval(compute, 1000);
@@ -57,7 +51,7 @@
 
   const remainingSec = $derived(() => {
     const lim = timeLimitSec();
-    if (lim <= 0) return null; // no timer
+    if (lim <= 0) return null;
     return lim - elapsedSec;
   });
 
@@ -77,11 +71,10 @@
     return 'ok';
   });
 
-  let showDialog = $state<'submit' | 'edit' | null>(null);
+  let showDialog = $state(false);
   let editingTimeLimit = $state(false);
   let timeLimitInput = $state('');
 
-  // Winner = team with fewer cups
   const winner = $derived(() => {
     if (match.status !== 'completed') return null;
     if (match.cupsA < match.cupsB) return match.teamA;
@@ -93,32 +86,22 @@
     scheduled: 'Scheduled',
     inProgress: 'Playing',
     completed: 'Done',
-    bye: 'Bye',
   };
 
   async function handleStart() {
-    await startMatch(match.id).catch((e) => alert(e));
+    await startPlayoffMatch(match.id).catch((e) => alert(e));
   }
 
   async function handleCancel() {
-    await cancelMatch(match.id).catch((e) => alert(e));
+    await cancelPlayoffMatch(match.id).catch((e) => alert(e));
   }
 
   async function handleSubmit(cupsA: number, cupsB: number) {
-    await submitResult(match.id, cupsA, cupsB);
-  }
-
-  async function handleEdit(cupsA: number, cupsB: number) {
-    await editResult(match.id, cupsA, cupsB);
-  }
-
-  async function handleTableChange(e: Event) {
-    const val = (e.target as HTMLSelectElement).value;
-    await reassignTable(match.id, val || null).catch((e) => alert(e));
+    await submitPlayoffResult(match.id, cupsA, cupsB);
   }
 
   async function handlePauseResume() {
-    if (match.pausedAt) {
+    if (isPaused) {
       await resumeMatchTimer(match.id).catch((e) => alert(e));
     } else {
       await pauseMatchTimer(match.id).catch((e) => alert(e));
@@ -143,52 +126,27 @@
   class="card"
   class:in-progress={match.status === 'inProgress'}
   class:completed={match.status === 'completed'}
-  class:bye={isBye}
+  class:pending={!hasBothTeams}
 >
-  <!-- Header: status + table selector -->
   <div class="header">
     <span class="status {match.status}">{statusLabel[match.status] ?? match.status}</span>
-
-    {#if !isBye && match.status !== 'completed'}
-      <select
-        class="table-select"
-        value={match.tableId ?? ''}
-        onchange={handleTableChange}
-        disabled={match.status === 'inProgress'}
-      >
-        <option value="">— no table —</option>
-        {#each t.config.tables as tbl}
-          <option value={tbl.id}>{tbl.name} ({tbl.category})</option>
-        {/each}
-      </select>
-    {:else if match.tableId}
-      <span class="table-badge">
-        {t.config.tables.find((x) => x.id === match.tableId)?.name ?? ''}
-      </span>
-    {/if}
   </div>
 
-  <!-- Teams + scores -->
   <div class="matchup">
-    <span class="team" class:winner={winner() === match.teamA}>{teamA}</span>
+    <span class="team" class:winner={winner() === match.teamA}>{hasBothTeams ? teamA : '?'}</span>
     <div class="score">
       {#if match.status === 'completed'}
         <span class="cups" class:win={winner() === match.teamA}>{match.cupsA}</span>
         <span class="dash">–</span>
         <span class="cups" class:win={winner() === match.teamB}>{match.cupsB}</span>
-      {:else if isBye}
-        <span class="bye-label">free win</span>
       {:else}
         <span class="dash">vs</span>
       {/if}
     </div>
-    <span class="team right" class:winner={winner() === match.teamB}>
-      {isBye ? '' : teamB}
-    </span>
+    <span class="team right" class:winner={winner() === match.teamB}>{hasBothTeams ? teamB : '?'}</span>
   </div>
 
-  <!-- Timer row (only for in-progress matches with a time limit) -->
-  {#if match.status === 'inProgress' && !isBye}
+  {#if match.status === 'inProgress'}
     <div class="timer-row">
       {#if timeLimitSec() > 0}
         <span class="timer {timerClass()}">
@@ -200,8 +158,8 @@
         <span class="timer ok">⏱ {formatTime(elapsedSec)}</span>
       {/if}
 
-      <button class="icon-btn" onclick={handlePauseResume} title={match.pausedAt ? 'Resume' : 'Pause'}>
-        {match.pausedAt ? '▶' : '⏸'}
+      <button class="icon-btn" onclick={handlePauseResume} title={isPaused ? 'Resume' : 'Pause'}>
+        {isPaused ? '▶' : '⏸'}
       </button>
 
       {#if editingTimeLimit}
@@ -224,41 +182,24 @@
     </div>
   {/if}
 
-  <!-- Actions -->
-  {#if !isBye}
-    <div class="actions">
-      {#if match.status === 'scheduled'}
-        <button
-          class="small primary"
-          onclick={handleStart}
-          disabled={!match.tableId}
-          title={!match.tableId ? 'Assign a table first' : ''}
-        >
-          Start
-        </button>
-      {:else if match.status === 'inProgress'}
-        <button class="small" onclick={handleCancel}>Cancel</button>
-        <button class="small primary" onclick={() => { showDialog = 'submit'; }}>Submit result</button>
-      {:else if match.status === 'completed'}
-        <button class="small" onclick={() => { showDialog = 'edit'; }}>Edit result</button>
-      {/if}
-    </div>
-  {/if}
+  <div class="actions">
+    {#if !hasBothTeams}
+      <span class="tbd">Waiting for teams</span>
+    {:else if match.status === 'scheduled'}
+      <button class="small primary" onclick={handleStart}>Start</button>
+    {:else if match.status === 'inProgress'}
+      <button class="small" onclick={handleCancel}>Cancel</button>
+      <button class="small primary" onclick={() => { showDialog = true; }}>Submit result</button>
+    {/if}
+  </div>
 </div>
 
-{#if showDialog === 'submit'}
+{#if showDialog}
   <ResultDialog
     {match}
     tournament={t}
     onSubmit={handleSubmit}
-    onClose={() => { showDialog = null; }}
-  />
-{:else if showDialog === 'edit'}
-  <ResultDialog
-    {match}
-    tournament={t}
-    onSubmit={handleEdit}
-    onClose={() => { showDialog = null; }}
+    onClose={() => { showDialog = false; }}
   />
 {/if}
 
@@ -277,12 +218,11 @@
 
   .card.in-progress { border-color: #2563eb; background: #1a1f30; }
   .card.completed   { border-color: #166534; background: #141e17; }
-  .card.bye         { opacity: 0.5; }
+  .card.pending     { opacity: 0.5; }
 
   .header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 0.5rem;
   }
 
@@ -293,30 +233,11 @@
     text-transform: uppercase;
     padding: 0.12rem 0.45rem;
     border-radius: 4px;
-    flex-shrink: 0;
   }
 
   .status.scheduled  { background: #2a2d36; color: #9ca3af; }
   .status.inProgress { background: #1e3a8a; color: #93c5fd; }
   .status.completed  { background: #14532d; color: #86efac; }
-  .status.bye        { background: #2a2d36; color: #6b7280; }
-
-  /* table-select inherits from global app.css; just size it down */
-  .table-select {
-    font-size: 0.78rem;
-    padding: 0.15rem 1.6rem 0.15rem 0.45rem;
-    max-width: 14rem;
-  }
-
-  .table-select:disabled { opacity: 0.5; cursor: default; }
-
-  .table-badge {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    background: #2a2d36;
-    border-radius: 4px;
-    padding: 0.1rem 0.45rem;
-  }
 
   .matchup {
     display: flex;
@@ -350,9 +271,7 @@
   .cups { color: #f1f3f7; }
   .cups.win { color: #4ade80; }
   .dash { opacity: 0.35; font-weight: 400; font-size: 0.85rem; }
-  .bye-label { opacity: 0.45; font-size: 0.75rem; font-weight: 400; }
 
-  /* Timer */
   .timer-row {
     display: flex;
     align-items: center;
@@ -400,6 +319,14 @@
     display: flex;
     gap: 0.4rem;
     justify-content: flex-end;
+    align-items: center;
+    margin-top: auto;
+  }
+
+  .tbd {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-style: italic;
   }
 
   button.small {
@@ -424,11 +351,10 @@
   :global(body.light) .status.scheduled  { background: #f3f4f6; color: #6b7280; }
   :global(body.light) .status.inProgress { background: #dbeafe; color: #1d4ed8; }
   :global(body.light) .status.completed  { background: #dcfce7; color: #166534; }
-  :global(body.light) .status.bye        { background: #f3f4f6; color: #9ca3af; }
 
-  :global(body.light) .table-badge { background: #e8eaed; color: #6b7280; }
   :global(body.light) .team  { color: #111827; }
   :global(body.light) .cups  { color: #111827; }
+  :global(body.light) .tbd   { color: #9ca3af; }
 
   :global(body.light) .icon-btn {
     background: #e8eaed;
@@ -436,11 +362,13 @@
     color: #374151;
   }
   :global(body.light) .icon-btn:hover { background: #d1d5db; }
+
   :global(body.light) .time-input {
     background: var(--bg-input);
     border-color: var(--border-focus);
     color: var(--text-primary);
   }
+
   :global(body.light) button.small {
     background: #e8eaed;
     border-color: #d1d5db;

@@ -71,6 +71,12 @@ export const setMatchTimeLimit = (matchId: string, seconds: number | null) =>
 // Playoffs
 export const startPlayoffs = () => invoke<Playoffs>('start_playoffs');
 
+export const startPlayoffMatch = (matchId: string) =>
+  invoke<void>('start_playoff_match', { matchId });
+
+export const cancelPlayoffMatch = (matchId: string) =>
+  invoke<void>('cancel_playoff_match', { matchId });
+
 export const submitPlayoffResult = (matchId: string, cupsA: number, cupsB: number) =>
   invoke<void>('submit_playoff_result', { matchId, cupsA, cupsB });
 
