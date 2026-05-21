@@ -98,6 +98,11 @@ pub fn advance_bracket(t: &mut Tournament, match_id: &str) -> Result<(), AppErro
         .as_mut()
         .ok_or_else(|| AppError::NotFound("playoffs".into()))?;
 
+    // 3rd-place match has no bracket slot — nothing to propagate.
+    if playoffs.third_place_match.as_ref().map_or(false, |m| m.id == match_id) {
+        return Ok(());
+    }
+
     // Find heap index of this match
     let match_pos = playoffs
         .matches

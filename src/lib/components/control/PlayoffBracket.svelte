@@ -240,4 +240,40 @@
     padding-top: 1.25rem;
     max-width: 16rem;
   }
+
+  /* Light mode */
+  :global(body.light) .bracket-wrap h2,
+  :global(body.light) .bracket-wrap h3 { color: #111827; }
+
+  :global(body.light) .round-label {
+    border-bottom-color: #e5e7eb;
+    color: #6b7280;
+  }
+
+  :global(body.light) .match {
+    background: #ffffff;
+    border-color: #d1d5db;
+  }
+
+  :global(body.light) .match.in-progress { border-color: #2563eb; }
+  :global(body.light) .match.completed { border-color: #16a34a; }
+
+  :global(body.light) .team {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+  }
+
+  :global(body.light) .team.winner { background: #f0fdf4; }
+  :global(body.light) .team.winner .name { color: #16a34a; }
+
+  :global(body.light) .name { color: #111827; }
+  :global(body.light) .cups { color: #111827; }
+
+  :global(body.light) .result-btn {
+    color: #2563eb;
+    border-top-color: #e5e7eb;
+  }
+
+  :global(body.light) .result-btn:hover { background: #dbeafe; }
+
+  :global(body.light) .third-place { border-top-color: #e5e7eb; }
 </style>

@@ -20,8 +20,16 @@
   const round     = $derived(t.rounds[viewIdx] ?? null);
   const nextRound = $derived(viewIdx < totalRounds - 1 ? t.rounds[viewIdx + 1] : null);
 
-  const playing   = $derived(round?.matches.filter((m) => m.status === 'inProgress')  ?? []);
-  const scheduled = $derived(round?.matches.filter((m) => m.status === 'scheduled')   ?? []);
+  function sortByTable(matches: Match[]) {
+    return [...matches].sort((a, b) => {
+      const ta = tableName(a.tableId) ?? '';
+      const tb = tableName(b.tableId) ?? '';
+      return ta.localeCompare(tb);
+    });
+  }
+
+  const playing   = $derived(sortByTable(round?.matches.filter((m) => m.status === 'inProgress')  ?? []));
+  const scheduled = $derived(sortByTable(round?.matches.filter((m) => m.status === 'scheduled')   ?? []));
   const finished  = $derived(round?.matches.filter((m) => m.status === 'completed' || m.status === 'bye') ?? []);
   const roundDone = $derived(round?.matches.every((m) => m.status === 'completed' || m.status === 'bye') ?? false);
 
@@ -128,7 +136,7 @@
         {#if nextRound}
           <h3>Up Next — Round {viewIdx + 2}</h3>
           <ul>
-            {#each nextRound.matches.filter(m => m.teamB !== 'BYE') as m (m.id)}
+            {#each sortByTable(nextRound.matches.filter(m => m.teamB !== 'BYE')) as m (m.id)}
               {@const tbl = tableName(m.tableId)}
               <li>
                 {#if tbl}<span class="table-tag">{tbl}</span>{/if}

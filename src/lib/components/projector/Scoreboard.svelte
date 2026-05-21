@@ -9,7 +9,7 @@
   let offset = $state(0);
 
   onMount(() => {
-    const SPEED = 0.35;   // px per frame
+    const SPEED = 0.8;   // px per frame
     const PAUSE_MS = 2200;
     let dir = 1;
     let animId: number;

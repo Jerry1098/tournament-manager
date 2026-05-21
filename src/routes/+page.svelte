@@ -7,6 +7,7 @@
   import StandingsTable from '$lib/components/control/StandingsTable.svelte';
   import BalanceReport from '$lib/components/control/BalanceReport.svelte';
   import PlayoffBracket from '$lib/components/control/PlayoffBracket.svelte';
+  import TournamentResults from '$lib/components/control/TournamentResults.svelte';
   import { tournamentStore } from '$lib/stores/tournament.svelte';
 
   let showNewTournament = $state(false);
@@ -171,9 +172,7 @@
       </div>
 
     {:else if phase === 'finished'}
-      <div class="placeholder">
-        <h2>Tournament finished!</h2>
-      </div>
+      <TournamentResults />
     {/if}
   </main>
 </div>
@@ -356,12 +355,6 @@
 
   .playoffs-cta h3 { margin: 0; color: #4ade80; }
   .playoffs-cta p  { margin: 0; font-size: 0.875rem; opacity: 0.7; }
-
-  .placeholder {
-    opacity: 0.6;
-    padding: 2rem;
-    text-align: center;
-  }
 
   .muted { opacity: 0.45 !important; font-size: 0.8rem !important; }
 

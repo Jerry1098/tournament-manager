@@ -22,6 +22,12 @@ export interface TournamentConfig {
    * per-category balance. Defaults to 3 when omitted.
    */
   maxRoundExtension?: number;
+  /**
+   * How many seeded schedule candidates to generate per game-count level.
+   * All successes are compared and the one with the fewest scheduling rounds is used.
+   * Defaults to 10 when omitted.
+   */
+  scheduleAttempts?: number;
 }
 
 export interface Team {

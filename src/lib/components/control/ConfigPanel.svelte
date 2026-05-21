@@ -8,6 +8,7 @@
   // "Matches per team" = number of Swiss pairing rounds (in Swiss, each round = 1 match per team)
   let matchesPerTeam = $state(3);
   let maxRoundExtension = $state(3);
+  let scheduleAttempts = $state(10);
   let expectedTeams = $state(16);
   let playoffTeamCount = $state(4);
   let defaultMatchMinutes = $state(15);
@@ -50,6 +51,7 @@
       tables: tableConfigs,
       swissRounds: matchesPerTeam,
       maxRoundExtension,
+      scheduleAttempts,
       playoffTeamCount,
       allowByes: true,
       randomSeed: Math.floor(Math.random() * 2 ** 32),
@@ -90,6 +92,12 @@
         Max extra rounds
         <input type="number" bind:value={maxRoundExtension} min="0" max="10" />
         <span class="hint">Extra rounds allowed to achieve equal games per category (0 = never extend)</span>
+      </label>
+
+      <label class="field">
+        Schedule attempts
+        <input type="number" bind:value={scheduleAttempts} min="1" max="200" />
+        <span class="hint">Candidates generated per game-count level; the one needing fewest scheduling rounds is used</span>
       </label>
     </div>
 
