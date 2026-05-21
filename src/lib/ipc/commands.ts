@@ -8,6 +8,7 @@ import type {
   TeamStanding,
   Tournament,
   TournamentConfig,
+  TournamentSummary,
 } from './types';
 
 // Tournament
@@ -26,6 +27,12 @@ export const getTournament = () => invoke<Tournament | null>('get_tournament');
 
 export const renameTournament = (name: string) =>
   invoke<Tournament>('rename_tournament', { name });
+
+export const listTournaments = () =>
+  invoke<TournamentSummary[]>('list_tournaments');
+
+export const deleteTournament = (path: string) =>
+  invoke<void>('delete_tournament', { path });
 
 // Teams
 export const addTeam = (name: string) => invoke<Team>('add_team', { name });
