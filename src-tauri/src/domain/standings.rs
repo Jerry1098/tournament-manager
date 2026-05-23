@@ -180,13 +180,13 @@ mod tests {
 
     #[test]
     fn basic_wins_and_cup_diff() {
-        // A wins with 3 cups remaining (B has 10), cd for A = 10-3 = +7
-        // C wins with 0 cups remaining (D has 7), cd for C = 7-0 = +7
+        // A wins with 10 cups remaining (B has 3), cd for A = 10-3 = +7
+        // C wins with 7 cups remaining (D has 0), cd for C = 7-0 = +7
         let t = make_tournament(
             &[("A", "Alpha"), ("B", "Beta"), ("C", "Gamma"), ("D", "Delta")],
             vec![
-                completed("m1", "A", "B", 3, 10),
-                completed("m2", "C", "D", 0, 7),
+                completed("m1", "A", "B", 10, 3),
+                completed("m2", "C", "D", 7, 0),
             ],
         );
         let s = compute_standings(&t);
@@ -200,13 +200,13 @@ mod tests {
 
     #[test]
     fn buchholz_sums_opponent_wins() {
-        // Winner = fewer cups. A(0) beats B(10), C(0) beats A(10), B(0) beats D(10)
+        // Winner = more cups. A(10) beats B(0), C(10) beats A(0), B(10) beats D(0)
         let t = make_tournament(
             &[("A", "A"), ("B", "B"), ("C", "C"), ("D", "D")],
             vec![
-                completed("m1", "A", "B", 0, 10),
-                completed("m2", "C", "A", 0, 10),
-                completed("m3", "B", "D", 0, 10),
+                completed("m1", "A", "B", 10, 0),
+                completed("m2", "C", "A", 10, 0),
+                completed("m3", "B", "D", 10, 0),
             ],
         );
         let s = compute_standings(&t);
