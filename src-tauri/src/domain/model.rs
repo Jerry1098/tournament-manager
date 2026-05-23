@@ -81,8 +81,8 @@ pub struct Match {
     pub team_a: String,
     pub team_b: String,
     /// Cups remaining in each team's rack at game end.
-    /// The team with FEWER cups wins (they cleared the opponent's rack).
-    /// Winner has 0 (sank all opponent cups), loser still has cups standing.
+    /// The team with MORE cups wins (more standing = opponent sank fewer).
+    /// Loser has 0 cups (all sunk by opponent), winner still has cups standing.
     pub cups_a: u32,
     pub cups_b: u32,
     pub status: MatchStatus,
@@ -114,14 +114,14 @@ impl Match {
         matches!(self.status, MatchStatus::Completed | MatchStatus::Bye)
     }
 
-    /// Team with FEWER cups wins (they cleared the opponent's rack, reaching 0).
+    /// Team with MORE cups wins (more cups still standing = opponent failed to sink them).
     pub fn winner(&self) -> Option<&str> {
         if self.status != MatchStatus::Completed {
             return None;
         }
-        if self.cups_a < self.cups_b {
+        if self.cups_a > self.cups_b {
             Some(&self.team_a)
-        } else if self.cups_b < self.cups_a {
+        } else if self.cups_b > self.cups_a {
             Some(&self.team_b)
         } else {
             None

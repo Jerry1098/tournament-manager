@@ -77,8 +77,8 @@
 
   const winner = $derived(() => {
     if (match.status !== 'completed') return null;
-    if (match.cupsA < match.cupsB) return match.teamA;
-    if (match.cupsB < match.cupsA) return match.teamB;
+    if (match.cupsA > match.cupsB) return match.teamA;
+    if (match.cupsB > match.cupsA) return match.teamB;
     return null;
   });
 

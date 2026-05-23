@@ -28,6 +28,7 @@
           <th>#</th>
           <th class="left">Team</th>
           <th title="Wins">W</th>
+          <th title="Draws">D</th>
           <th title="Losses">L</th>
           <th title="Cup difference">±</th>
           <th title="Buchholz">BH</th>
@@ -39,6 +40,7 @@
             <td class="rank">{s.rank}</td>
             <td class="name">{s.teamName}</td>
             <td class="num">{s.wins}</td>
+            <td class="num muted">{s.draws}</td>
             <td class="num">{s.losses}</td>
             <td class="num" class:pos={s.cupDiff > 0} class:neg={s.cupDiff < 0}>{sign(s.cupDiff)}</td>
             <td class="num muted">{s.buchholz.toFixed(1)}</td>

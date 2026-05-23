@@ -25,10 +25,6 @@
   let error = $state('');
 
   async function handleSubmit() {
-    if (cupsA === cupsB) {
-      error = 'Cup counts cannot be equal (no ties in beer pong).';
-      return;
-    }
     error = '';
     submitting = true;
     try {
@@ -51,7 +47,7 @@
   <div class="dialog">
     <h2>Submit Result</h2>
 
-    <p class="hint">Enter cups remaining in each team's rack. Team with 0 (or fewer) cups wins.</p>
+    <p class="hint">Enter cups remaining in each team's rack. More cups wins. Equal cups = draw.</p>
 
     <div class="matchup">
       <div class="team">
@@ -62,7 +58,7 @@
           min="0"
           max="10"
           class="cups"
-          class:is-winner={cupsA < cupsB}
+          class:is-winner={cupsA > cupsB}
           aria-label="Cups remaining for {teamA}"
         />
         <span class="cups-label">cups left</span>
@@ -76,16 +72,18 @@
           min="0"
           max="10"
           class="cups"
-          class:is-winner={cupsB < cupsA}
+          class:is-winner={cupsB > cupsA}
           aria-label="Cups remaining for {teamB}"
         />
         <span class="team-name">{teamB}</span>
       </div>
     </div>
 
-    {#if cupsA !== cupsB}
+    {#if cupsA === cupsB}
+      <p class="draw">Draw</p>
+    {:else}
       <p class="winner">
-        Winner: <strong>{cupsA < cupsB ? teamA : teamB}</strong>
+        Winner: <strong>{cupsA > cupsB ? teamA : teamB}</strong>
       </p>
     {/if}
 
@@ -95,7 +93,7 @@
 
     <div class="actions">
       <button onclick={onClose} disabled={submitting}>Cancel</button>
-      <button class="primary" onclick={handleSubmit} disabled={submitting || cupsA === cupsB}>
+      <button class="primary" onclick={handleSubmit} disabled={submitting}>
         {submitting ? 'Saving…' : 'Confirm'}
       </button>
     </div>
@@ -184,6 +182,14 @@
     opacity: 0.4;
     font-size: 0.9rem;
     flex-shrink: 0;
+  }
+
+  .draw {
+    text-align: center;
+    margin: 0;
+    font-size: 0.9rem;
+    color: #fbbf24;
+    font-weight: 600;
   }
 
   .winner {

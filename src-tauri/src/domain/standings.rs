@@ -8,6 +8,7 @@ pub struct TeamStanding {
     pub team_id: String,
     pub team_name: String,
     pub wins: u32,
+    pub draws: u32,
     pub losses: u32,
     pub cup_diff: i32,
     pub buchholz: f32,
@@ -17,6 +18,7 @@ pub struct TeamStanding {
 pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
     struct Entry {
         wins: u32,
+        draws: u32,
         losses: u32,
         cup_diff: i32,
         opponents: Vec<String>,
@@ -31,6 +33,7 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                 team.id.clone(),
                 Entry {
                     wins: 0,
+                    draws: 0,
                     losses: 0,
                     cup_diff: 0,
                     opponents: vec![],
@@ -49,9 +52,10 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                     }
                 }
                 MatchStatus::Completed => {
-                    // Winner = team with FEWER cups (cleared opponent's rack).
-                    // cd > 0 means team_a has fewer cups → team_a wins.
-                    let cd = m.cups_b as i32 - m.cups_a as i32;
+                    // Winner = team with MORE cups (more standing = opponent sank fewer).
+                    // cd > 0 means team_a has more cups → team_a wins.
+                    // cd == 0 → draw.
+                    let cd = m.cups_a as i32 - m.cups_b as i32;
                     if let Some(entry) = map.get_mut(&m.team_a) {
                         entry.cup_diff += cd;
                         entry.opponents.push(m.team_b.clone());
@@ -59,6 +63,8 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                             entry.wins += 1;
                         } else if cd < 0 {
                             entry.losses += 1;
+                        } else {
+                            entry.draws += 1;
                         }
                     }
                     if let Some(entry) = map.get_mut(&m.team_b) {
@@ -68,6 +74,8 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                             entry.wins += 1;
                         } else if cd > 0 {
                             entry.losses += 1;
+                        } else {
+                            entry.draws += 1;
                         }
                     }
                 }
@@ -94,6 +102,7 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                 team_id: id,
                 team_name: entry.name,
                 wins: entry.wins,
+                draws: entry.draws,
                 losses: entry.losses,
                 cup_diff: entry.cup_diff,
                 buchholz,

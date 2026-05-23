@@ -127,9 +127,6 @@ pub async fn submit_result(
     state: State<'_, SharedState>,
     app: AppHandle,
 ) -> Result<(), AppError> {
-    if cups_a == cups_b {
-        return Err(AppError::InvalidArgument("Cup counts cannot be equal (no ties in beerpong)".into()));
-    }
 
     let mut guard = state.lock().unwrap();
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
@@ -169,9 +166,6 @@ pub async fn edit_result(
     state: State<'_, SharedState>,
     app: AppHandle,
 ) -> Result<(), AppError> {
-    if cups_a == cups_b {
-        return Err(AppError::InvalidArgument("Cup counts cannot be equal".into()));
-    }
 
     let mut guard = state.lock().unwrap();
     let path = guard.current_path.clone().ok_or_else(|| AppError::Tauri("no save path".into()))?;
