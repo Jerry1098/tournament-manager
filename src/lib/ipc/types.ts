@@ -91,6 +91,7 @@ export interface TeamStanding {
   teamId: string;
   teamName: string;
   wins: number;
+  draws: number;
   losses: number;
   cupDiff: number;
   buchholz: number;
