@@ -27,7 +27,7 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
     }
 
     fn points(e: &Entry) -> u32 {
-        e.wins * 2 + e.draws
+        e.wins * 3 + e.draws
     }
 
     let mut map: HashMap<String, Entry> = t
