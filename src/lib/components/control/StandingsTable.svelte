@@ -27,6 +27,7 @@
         <tr>
           <th>#</th>
           <th class="left">Team</th>
+          <th title="Points">Pts</th>
           <th title="Wins">W</th>
           <th title="Draws">D</th>
           <th title="Losses">L</th>
@@ -39,6 +40,7 @@
           <tr>
             <td class="rank">{s.rank}</td>
             <td class="name">{s.teamName}</td>
+            <td class="num">{s.points}</td>
             <td class="num">{s.wins}</td>
             <td class="num muted">{s.draws}</td>
             <td class="num">{s.losses}</td>

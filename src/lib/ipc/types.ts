@@ -90,6 +90,7 @@ export interface Tournament {
 export interface TeamStanding {
   teamId: string;
   teamName: string;
+  points: number;
   wins: number;
   draws: number;
   losses: number;

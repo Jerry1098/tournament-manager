@@ -7,6 +7,7 @@ use crate::domain::model::{Tournament, MatchStatus, BYE};
 pub struct TeamStanding {
     pub team_id: String,
     pub team_name: String,
+    pub points: u32,
     pub wins: u32,
     pub draws: u32,
     pub losses: u32,
@@ -23,6 +24,10 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
         cup_diff: i32,
         opponents: Vec<String>,
         name: String,
+    }
+
+    fn points(e: &Entry) -> u32 {
+        e.wins * 2 + e.draws
     }
 
     let mut map: HashMap<String, Entry> = t
@@ -98,9 +103,11 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                 .filter(|opp| *opp != BYE)
                 .map(|opp| *wins_snapshot.get(opp).unwrap_or(&0) as f32)
                 .sum();
+            let pts = points(&entry);
             TeamStanding {
                 team_id: id,
                 team_name: entry.name,
+                points: pts,
                 wins: entry.wins,
                 draws: entry.draws,
                 losses: entry.losses,
@@ -112,8 +119,8 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
         .collect();
 
     standings.sort_by(|a, b| {
-        b.wins
-            .cmp(&a.wins)
+        b.points
+            .cmp(&a.points)
             .then(b.cup_diff.cmp(&a.cup_diff))
             .then(b.buchholz.partial_cmp(&a.buchholz).unwrap_or(std::cmp::Ordering::Equal))
             .then(a.team_name.cmp(&b.team_name))
