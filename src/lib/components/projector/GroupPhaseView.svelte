@@ -113,16 +113,17 @@
           <div class="small-grid">
             {#each finished as m (m.id)}
               {#if m.status !== 'bye'}
-                {@const aWon = m.cupsA < m.cupsB}
+                {@const aWon = m.cupsA > m.cupsB}
+                {@const bWon = m.cupsB > m.cupsA}
                 <div class="small-card done-card">
                   <div class="small-teams">
                     <span class="small-team" class:won={aWon}>{teamName(m.teamA)}</span>
                     <div class="small-score-block">
                       <span class="small-score" class:win={aWon}>{m.cupsA}</span>
                       <span class="small-dash">–</span>
-                      <span class="small-score" class:win={!aWon}>{m.cupsB}</span>
+                      <span class="small-score" class:win={bWon}>{m.cupsB}</span>
                     </div>
-                    <span class="small-team right" class:won={!aWon}>{teamName(m.teamB)}</span>
+                    <span class="small-team right" class:won={bWon}>{teamName(m.teamB)}</span>
                   </div>
                 </div>
               {/if}

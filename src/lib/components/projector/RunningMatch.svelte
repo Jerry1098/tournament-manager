@@ -6,10 +6,9 @@
   const teamA  = $derived(tournament.teams.find((t) => t.id === match.teamA)?.name ?? match.teamA);
   const teamB  = $derived(tournament.teams.find((t) => t.id === match.teamB)?.name ?? match.teamB);
   const table  = $derived(tournament.config.tables.find((t) => t.id === match.tableId));
-  // Winner = fewer cups remaining
   const winner = $derived(
     match.status === 'completed'
-      ? (match.cupsA < match.cupsB ? match.teamA : match.cupsB < match.cupsA ? match.teamB : null)
+      ? (match.cupsA > match.cupsB ? match.teamA : match.cupsB > match.cupsA ? match.teamB : null)
       : null
   );
 

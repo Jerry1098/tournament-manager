@@ -52,10 +52,10 @@ pub fn compute_standings(t: &Tournament) -> Vec<TeamStanding> {
                     }
                 }
                 MatchStatus::Completed => {
-                    // Winner = team with FEWER cups (cleared opponent's rack).
-                    // cd > 0 means team_a has fewer cups → team_a wins.
+                    // Winner = team with MORE cups (more standing = opponent sank fewer).
+                    // cd > 0 means team_a has more cups → team_a wins.
                     // cd == 0 → draw.
-                    let cd = m.cups_b as i32 - m.cups_a as i32;
+                    let cd = m.cups_a as i32 - m.cups_b as i32;
                     if let Some(entry) = map.get_mut(&m.team_a) {
                         entry.cup_diff += cd;
                         entry.opponents.push(m.team_b.clone());

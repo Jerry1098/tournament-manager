@@ -47,7 +47,7 @@
   <div class="dialog">
     <h2>Submit Result</h2>
 
-    <p class="hint">Enter cups remaining in each team's rack. Fewer cups wins. Equal cups = draw.</p>
+    <p class="hint">Enter cups remaining in each team's rack. More cups wins. Equal cups = draw.</p>
 
     <div class="matchup">
       <div class="team">
@@ -58,7 +58,7 @@
           min="0"
           max="10"
           class="cups"
-          class:is-winner={cupsA < cupsB}
+          class:is-winner={cupsA > cupsB}
           aria-label="Cups remaining for {teamA}"
         />
         <span class="cups-label">cups left</span>
@@ -72,7 +72,7 @@
           min="0"
           max="10"
           class="cups"
-          class:is-winner={cupsB < cupsA}
+          class:is-winner={cupsB > cupsA}
           aria-label="Cups remaining for {teamB}"
         />
         <span class="team-name">{teamB}</span>
@@ -83,7 +83,7 @@
       <p class="draw">Draw</p>
     {:else}
       <p class="winner">
-        Winner: <strong>{cupsA < cupsB ? teamA : teamB}</strong>
+        Winner: <strong>{cupsA > cupsB ? teamA : teamB}</strong>
       </p>
     {/if}
 
